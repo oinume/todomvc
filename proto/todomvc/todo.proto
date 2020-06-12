@@ -1,0 +1,32 @@
+// https://github.com/grpc-ecosystem/grpc-gateway/blob/master/third_party/googleapis/google/api/http.proto
+syntax = "proto3";
+
+package todomvc.v1;
+option go_package = "github.com/oinume/todomvc-example/proto-gen/go/proto/todomvc";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service Todos {
+    rpc CreateTodoItem(CreateTodoItemRequest) returns (CreateTodoItemResponse) {
+        option (google.api.http) = {
+            post: "/todos"
+            body: "*"
+        };
+    }
+}
+
+message TodoItem {
+    string id = 1;
+    string title = 2;
+    bool completed = 3;
+    google.protobuf.Timestamp completed_at = 4;
+}
+
+message CreateTodoItemRequest {
+    TodoItem todo_item = 1;
+}
+
+message CreateTodoItemResponse {
+}
