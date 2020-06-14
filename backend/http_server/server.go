@@ -50,6 +50,7 @@ func New(logger *zap.Logger) *Server {
 
 func (s *Server) NewRouter() *mux.Router {
 	r := mux.NewRouter()
+	r.Use(accessLogMiddleware(s.logger))
 	r.HandleFunc("/todos", s.CreateTodo).Methods("POST")
 	//r.HandleFunc("/todos", s.fetcher).Methods("GET")
 	//r.HandleFunc("/todos/{id}", s.fetcher).Methods("Put")
