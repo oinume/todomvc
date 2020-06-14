@@ -4,14 +4,20 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/oinume/todomvc-example/backend/http_server"
 )
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 	server := http_server.New()
 	router := server.NewRouter()
-	err := http.ListenAndServe(fmt.Sprintf(":%d", 8080), router)
+	log.Printf("Starting HTTP server on port %v", port)
+	err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%v", port), router)
 	if err != nil {
 		log.Fatal(err)
 	}

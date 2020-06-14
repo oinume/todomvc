@@ -7,16 +7,21 @@ import (
 	"net/http"
 
 	"github.com/golang/protobuf/jsonpb"
-
 	"github.com/gorilla/mux"
-	todomvc "github.com/oinume/todomvc-example/proto-gen/go/proto/todomvc"
+
+	"github.com/oinume/todomvc-example/proto-gen/go/proto/todomvc"
 )
 
 type server struct {
+	unmarshaler *jsonpb.Unmarshaler
 }
 
 func New() *server {
-	return &server{}
+	return &server{
+		unmarshaler: &jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		},
+	}
 }
 
 func (s *server) NewRouter() *mux.Router {
@@ -28,15 +33,14 @@ func (s *server) NewRouter() *mux.Router {
 }
 
 func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
-	um := &jsonpb.Unmarshaler{AllowUnknownFields: true}
-	req := &todomvc.CreateTodoItemRequest{}
-	if err := um.Unmarshal(r.Body, req); err != nil {
+	req := &todomvc.CreateTodoRequest{}
+	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
 		internalServerError(w, err)
 		return
 	}
 
 	_, _ = fmt.Fprintf(w, "req = %+v\n", req)
-	_, _ = fmt.Fprintf(w, "id = %+v\n", req.TodoItem.Id)
+	_, _ = fmt.Fprintf(w, "title = %+v\n", req.Title)
 }
 
 func internalServerError(w http.ResponseWriter, err error) {

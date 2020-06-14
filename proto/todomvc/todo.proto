@@ -9,7 +9,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 service Todos {
-    rpc CreateTodoItem(CreateTodoItemRequest) returns (CreateTodoItemResponse) {
+    rpc CreateTodoItem (CreateTodoRequest) returns (TodoItem) {
         option (google.api.http) = {
             post: "/todos"
             body: "*"
@@ -24,9 +24,6 @@ message TodoItem {
     google.protobuf.Timestamp completed_at = 4;
 }
 
-message CreateTodoItemRequest {
-    TodoItem todo_item = 1;
-}
-
-message CreateTodoItemResponse {
+message CreateTodoRequest {
+    string title = 1;
 }
