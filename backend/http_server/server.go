@@ -30,14 +30,14 @@ func (store *TodoItemsStore) Load(id string) (*todomvc.TodoItem, error) {
 	return nil, fmt.Errorf("cannot find TodoItem for %s", id)
 }
 
-type Server struct {
+type server struct {
 	logger      *zap.Logger
 	store       *TodoItemsStore
 	unmarshaler *jsonpb.Unmarshaler
 }
 
-func New(logger *zap.Logger) *Server {
-	return &Server{
+func New(logger *zap.Logger) *server {
+	return &server{
 		logger: logger,
 		store: &TodoItemsStore{
 			items: make(map[string]*todomvc.TodoItem, 100),
@@ -48,7 +48,7 @@ func New(logger *zap.Logger) *Server {
 	}
 }
 
-func (s *Server) NewRouter() *mux.Router {
+func (s *server) NewRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.Use(accessLogMiddleware(s.logger))
 	r.HandleFunc("/todos", s.CreateTodo).Methods("POST")
@@ -57,7 +57,7 @@ func (s *Server) NewRouter() *mux.Router {
 	return r
 }
 
-func (s *Server) CreateTodo(w http.ResponseWriter, r *http.Request) {
+func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	req := &todomvc.CreateTodoRequest{}
 	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
 		internalServerError(w, err)
@@ -100,7 +100,7 @@ func internalServerError(w http.ResponseWriter, err error) {
 	//	appLogger.Error("internalServerError", fields...)
 	//}
 
-	http.Error(w, fmt.Sprintf("Internal Server Error\n\n%v", err), http.StatusInternalServerError)
+	http.Error(w, fmt.Sprintf("Internal server Error\n\n%v", err), http.StatusInternalServerError)
 	//if !config.IsProductionEnv() {
 	//	fmt.Fprintf(w, "----- stacktrace -----\n")
 	//	if e, ok := err.(errors.StackTracer); ok {
