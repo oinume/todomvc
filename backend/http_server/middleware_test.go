@@ -5,10 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
-
-	"go.uber.org/zap"
 )
 
 func Test_accessLogMiddleware(t *testing.T) {
