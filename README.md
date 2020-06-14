@@ -11,3 +11,7 @@ This is a todomvc implementation in Go.
 - ORMapper: sqlboiler (TBD)
 - Logging: Zap (TBD)
 - Tracing: OpenCensus + Jaeger (TBD)
+
+## CI
+
+- GitHub Actions
