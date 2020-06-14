@@ -19,9 +19,6 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-#      - name: Install Dependencies
-#        if: steps.cache.outputs.cache-hit != 'true'
-#        run:
       - name: Build
         run: |
           make build
