@@ -29,13 +29,13 @@ func (store *TodoItemsStore) Load(id string) (*todomvc.TodoItem, error) {
 	return nil, fmt.Errorf("cannot find TodoItem for %s", id)
 }
 
-type server struct {
+type Server struct {
 	store       *TodoItemsStore
 	unmarshaler *jsonpb.Unmarshaler
 }
 
-func New() *server {
-	return &server{
+func New() *Server {
+	return &Server{
 		store: &TodoItemsStore{
 			items: make(map[string]*todomvc.TodoItem, 100),
 		},
@@ -45,7 +45,7 @@ func New() *server {
 	}
 }
 
-func (s *server) NewRouter() *mux.Router {
+func (s *Server) NewRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/todos", s.CreateTodo).Methods("POST")
 	//r.HandleFunc("/todos", s.fetcher).Methods("GET")
@@ -53,7 +53,7 @@ func (s *server) NewRouter() *mux.Router {
 	return r
 }
 
-func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	req := &todomvc.CreateTodoRequest{}
 	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
 		internalServerError(w, err)
