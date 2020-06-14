@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 
-	"github.com/oinume/todomvc-example/proto-gen/go/proto/todomvc"
+	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
 
 type TodoItemsStore struct {

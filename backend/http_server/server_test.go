@@ -6,12 +6,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/golang/protobuf/jsonpb"
 	"go.uber.org/zap"
 
-	"github.com/golang/protobuf/jsonpb"
-
-	"github.com/oinume/todomvc-example/proto-gen/go/proto/todomvc"
 	"github.com/oinume/todomvc/backend/http_server"
+	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
 
 func Test_Server_CreateTodo(t *testing.T) {
