@@ -7,17 +7,38 @@ import (
 	"net/http"
 
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 
 	"github.com/oinume/todomvc-example/proto-gen/go/proto/todomvc"
 )
 
+type TodoItemsStore struct {
+	items map[string]*todomvc.TodoItem
+}
+
+func (store *TodoItemsStore) Save(item *todomvc.TodoItem) error {
+	store.items[item.Id] = item
+	return nil
+}
+
+func (store *TodoItemsStore) Load(id string) (*todomvc.TodoItem, error) {
+	if item, ok := store.items[id]; ok {
+		return item, nil
+	}
+	return nil, fmt.Errorf("cannot find TodoItem for %s", id)
+}
+
 type server struct {
+	store       *TodoItemsStore
 	unmarshaler *jsonpb.Unmarshaler
 }
 
 func New() *server {
 	return &server{
+		store: &TodoItemsStore{
+			items: make(map[string]*todomvc.TodoItem, 100),
+		},
 		unmarshaler: &jsonpb.Unmarshaler{
 			AllowUnknownFields: true,
 		},
@@ -39,8 +60,17 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, _ = fmt.Fprintf(w, "req = %+v\n", req)
-	_, _ = fmt.Fprintf(w, "title = %+v\n", req.Title)
+	id := uuid.New().String()
+	item := &todomvc.TodoItem{
+		Id:    id,
+		Title: req.Title,
+	}
+	if err := s.store.Save(item); err != nil {
+		internalServerError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, item)
 }
 
 func internalServerError(w http.ResponseWriter, err error) {
