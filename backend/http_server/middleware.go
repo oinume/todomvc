@@ -5,10 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 )
 
-func accessLogMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
+func accessLogMiddleware(logger *zap.Logger) mux.MiddlewareFunc {
 	return func(h http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
