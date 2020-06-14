@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 
 	"github.com/oinume/todomvc-example/proto-gen/go/proto/todomvc"
 )
@@ -30,12 +31,14 @@ func (store *TodoItemsStore) Load(id string) (*todomvc.TodoItem, error) {
 }
 
 type Server struct {
+	logger      *zap.Logger
 	store       *TodoItemsStore
 	unmarshaler *jsonpb.Unmarshaler
 }
 
-func New() *Server {
+func New(logger *zap.Logger) *Server {
 	return &Server{
+		logger: logger,
 		store: &TodoItemsStore{
 			items: make(map[string]*todomvc.TodoItem, 100),
 		},

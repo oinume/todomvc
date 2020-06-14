@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"go.uber.org/zap"
+
 	"github.com/golang/protobuf/jsonpb"
 
 	"github.com/oinume/todomvc-example/proto-gen/go/proto/todomvc"
@@ -15,7 +17,7 @@ import (
 func Test_Server_CreateTodo(t *testing.T) {
 	m := &jsonpb.Marshaler{OrigName: true}
 	u := &jsonpb.Unmarshaler{}
-	s := http_server.New()
+	s := http_server.New(zap.NewNop())
 
 	type response struct {
 		statusCode int
