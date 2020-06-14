@@ -2,14 +2,14 @@
 syntax = "proto3";
 
 package todomvc.v1;
-option go_package = "github.com/oinume/todomvc-example/proto-gen/go/proto/todomvc";
+option go_package = "github.com/oinume/todomvc/proto-gen/go/proto/todomvc";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 service Todos {
-    rpc CreateTodoItem (CreateTodoRequest) returns (TodoItem) {
+    rpc CreateTodo(CreateTodoRequest) returns (TodoItem) {
         option (google.api.http) = {
             post: "/todos"
             body: "*"
