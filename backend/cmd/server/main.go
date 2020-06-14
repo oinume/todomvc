@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/oinume/todomvc-example/backend/http_server"
+	"github.com/oinume/todomvc/backend/http_server"
 )
 
 func main() {
@@ -21,4 +21,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// TODO: graceful shutdown
 }
