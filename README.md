@@ -9,6 +9,7 @@ This is a todomvc implementation in Go.
 - Routing: gorilla/mux
 - Database: MySQL (TBD)
 - ORMapper: sqlboiler (TBD)
+- DI: wire (TBD)
 - Logging: Zap (TBD)
 - Tracing: OpenCensus + Jaeger (TBD)
 
