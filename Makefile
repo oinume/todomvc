@@ -20,8 +20,7 @@ install-commands:
 
 .PHONY: install-tools
 install-tools:
-	cd tools && go install \
-#		github.com/volatiletech/sqlboiler \
+	cd tools && $(GO_GET) \
 		github.com/pressly/goose/cmd/goose
 
 .PHONY: build
