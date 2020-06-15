@@ -4,7 +4,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Set up Go 1.14
         uses: actions/setup-go@v1
@@ -22,6 +22,12 @@ jobs:
       - name: Build
         run: |
           make build
+      - name: Start MySQL
+        run: |
+          sudo systemctl start mysql.service
+      - name: Create database
+        run: |
+          mysql -h127.0.0.1 -uroot -proot < ./db/docker-entrypoint-initdb.d/create_database.sql
       - name: Run tests
         run: |
           make test
