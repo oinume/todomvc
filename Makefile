@@ -10,13 +10,19 @@ PID = server.pid
 all: build
 
 .PHONY: setup
-setup: install-commands
+setup: install-commands install-tools
 
 .PHONY: install-commands
 install-commands:
 	$(GO_GET) google.golang.org/protobuf/cmd/protoc-gen-go@v1.24.0
 #	$(GO_GET) github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 #	$(GO_GET) https://github.com/golang/protobuf/tree/master/protoc-gen-go@v1.4.2
+
+.PHONY: install-tools
+install-tools:
+	cd tools && go install \
+#		github.com/volatiletech/sqlboiler \
+		github.com/pressly/goose/cmd/goose
 
 .PHONY: build
 build:
