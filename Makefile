@@ -43,6 +43,21 @@ proto/go:
 #		--grpc-gateway_out=logtostderr=true:$(PROTO_GEN_DIR)/go \
 		proto/api/v1/*.proto
 
+.PHONY: db/goose/%
+db/goose/%:
+	goose -dir ./db/migration mysql "$(MYSQL_USER):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT))/$(MYSQL_DATABASE)?charset=utf8mb4&parseTime=true&loc=UTC" $*
+#	goose -dir ./db/migration mysql "$(MYSQL_USER):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT_XO))/$(MYSQL_DATABASE)?charset=utf8mb4&parseTime=true&loc=UTC" $*
+
+.PHONY: db/reset
+db/reset:
+	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -uroot -proot -e "DROP DATABASE IF EXISTS $(MYSQL_DATABASE); DROP DATABASE IF EXISTS $(MYSQL_DATABASE)_test"
+	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -uroot -proot < db/docker-entrypoint-initdb.d/create_database.sql
+
+.PHONY: db/connect
+db/connect:
+	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE)
+
+
 kill:
 	@kill `cat $(PID)` 2> /dev/null || true
 
@@ -51,3 +66,4 @@ restart: kill clean build
 
 watch: restart
 	fswatch -o -e ".*" -e vendor -e node_modules -e .venv -i "\\.go$$" . | xargs -n1 -I{} make restart || make kill
+
