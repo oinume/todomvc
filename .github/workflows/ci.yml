@@ -43,7 +43,7 @@ jobs:
       - name: DB Migration
         run: |
           export PATH=${PATH}:~/go/bin:`pwd`/tools/bin:
-          make db/goose/up
+          make test/db/goose/up
       - name: Run tests
         run: |
           make test
