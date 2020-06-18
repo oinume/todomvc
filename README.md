@@ -7,10 +7,10 @@ This is a todomvc implementation in Go.
 - Go
 - Protocol: HTTP + Protocol Buffers with JSON codec
 - Routing: gorilla/mux
-- Database: MySQL (TBD)
-- ORMapper: sqlboiler (TBD)
+- Database: MySQL
+- ORMapper: sqlboiler
 - DI: wire (TBD)
-- Logging: Zap (TBD)
+- Logging: Zap
 - Tracing: OpenCensus + Jaeger (TBD)
 
 ## CI
