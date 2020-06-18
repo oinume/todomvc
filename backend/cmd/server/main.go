@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/oinume/todomvc/backend/config"
-
+	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 
+	"github.com/oinume/todomvc/backend/config"
 	"github.com/oinume/todomvc/backend/http_server"
 	"github.com/oinume/todomvc/backend/logging"
 )
