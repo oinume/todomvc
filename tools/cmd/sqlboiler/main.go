@@ -9,9 +9,9 @@ import (
 func main() {
 	t := `
 add-panic-variants = false
+no-tests = true
 output  = "./backend/model"
 pkgname = "model"
-
 
 [mysql]
   dbname  = "%s"
