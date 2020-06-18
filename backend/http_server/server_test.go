@@ -77,7 +77,7 @@ func Test_Server_CreateTodo(t *testing.T) {
 
 			result := rr.Result()
 			if result.StatusCode != http.StatusCreated {
-				t.Errorf("unexpected status code: got=%v, want=%v", result.StatusCode, http.StatusCreated)
+				t.Fatalf("unexpected status code: got=%v, want=%v", result.StatusCode, http.StatusCreated)
 			}
 			got := &todomvc.TodoItem{}
 			if err := u.Unmarshal(result.Body, got); err != nil {
