@@ -17,4 +17,6 @@ googleapis/
 tools/bin/
 *.pid
 /bin
+/.env
+/sqlboiler.toml
 

@@ -1,0 +1,6 @@
+local:
+    driver: mysql
+    open: $MYSQL_USER:$MYSQL_PASSWORD@tcp($MYSQL_HOST:$MYSQL_PORT)/$(MYSQL_DATABASE)?charset=utf8mb4&parseTime=true&loc=UTC
+ci:
+    driver: mysql
+    open: todomvc:todomvc@tcp(127.0.0.1:3306)/todomvc?charset=utf8mb4&parseTime=true&loc=UTC

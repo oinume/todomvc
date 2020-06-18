@@ -4,7 +4,14 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    env:
+      MYSQL_USER: todomvc
+      MYSQL_PASSWORD: todomvc
+      MYSQL_HOST: 127.0.0.1
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: todomvc
+      CACHE_VERSION: 1
     steps:
       - name: Set up Go 1.14
         uses: actions/setup-go@v1
@@ -15,13 +22,28 @@ jobs:
       - uses: actions/cache@v2
         id: cache
         with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          path: ~/go
+          key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}-${{ env.CACHE_VERSION }}
           restore-keys: |
             ${{ runner.os }}-go-
+      - name: Install tools
+        run: |
+          if [ ! -e ~/go/bin/goose ]; then
+            make install-tools
+          fi
       - name: Build
         run: |
           make build
+      - name: Start MySQL
+        run: |
+          sudo systemctl start mysql.service
+      - name: Create database
+        run: |
+          mysql -h${MYSQL_HOST} -uroot -proot < ./db/docker-entrypoint-initdb.d/create_database.sql
+      - name: DB Migration
+        run: |
+          export PATH=${PATH}:~/go/bin:`pwd`/tools/bin:
+          make test/db/goose/up
       - name: Run tests
         run: |
           make test

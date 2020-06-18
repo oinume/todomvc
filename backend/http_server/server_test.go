@@ -2,20 +2,38 @@ package http_server
 
 import (
 	"bytes"
+	"database/sql"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/jsonpb"
 	"go.uber.org/zap"
 
+	"github.com/oinume/todomvc/backend/config"
 	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
+
+var db *sql.DB
+
+func TestMain(m *testing.M) {
+	_ = os.Setenv("MYSQL_DATABASE", "todomvc_test")
+	config.MustProcessDefault()
+	dbURL := config.DefaultVars.DBURL()
+	ldb, err := sql.Open("mysql", dbURL)
+	if err != nil {
+		panic("Failed to sql.Open: " + err.Error())
+	}
+	db = ldb
+	os.Exit(m.Run())
+}
 
 func Test_Server_CreateTodo(t *testing.T) {
 	m := &jsonpb.Marshaler{OrigName: true}
 	u := &jsonpb.Unmarshaler{}
-	s := New(zap.NewNop())
+	s := New(db, zap.NewNop())
 
 	type response struct {
 		statusCode int
@@ -59,7 +77,7 @@ func Test_Server_CreateTodo(t *testing.T) {
 
 			result := rr.Result()
 			if result.StatusCode != http.StatusCreated {
-				t.Errorf("unexpected status code: got=%v, want=%v", result.StatusCode, http.StatusCreated)
+				t.Fatalf("unexpected status code: got=%v, want=%v", result.StatusCode, http.StatusCreated)
 			}
 			got := &todomvc.TodoItem{}
 			if err := u.Unmarshal(result.Body, got); err != nil {
