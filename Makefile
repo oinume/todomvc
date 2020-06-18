@@ -21,7 +21,8 @@ install-commands:
 .PHONY: install-tools
 install-tools:
 	cd tools && $(GO_GET) \
-		github.com/pressly/goose/cmd/goose
+		github.com/pressly/goose/cmd/goose \
+		github.com/volatiletech/sqlboiler
 
 .PHONY: build
 build:
@@ -62,6 +63,9 @@ db/reset:
 db/connect:
 	mysql -h $(MYSQL_HOST) -P $(MYSQL_PORT) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) $(MYSQL_DATABASE)
 
+db/generate:
+	go run ./tools/cmd/sqlboiler/main.go > sqlboiler.toml
+	sqlboiler -c sqlboiler.toml mysql
 
 kill:
 	@kill `cat $(PID)` 2> /dev/null || true

@@ -1,6 +1,7 @@
 package http_server
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -9,8 +10,10 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/volatiletech/sqlboiler/boil"
 	"go.uber.org/zap"
 
+	"github.com/oinume/todomvc/backend/model"
 	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
 
@@ -31,14 +34,16 @@ func (store *TodoItemsStore) Load(id string) (*todomvc.TodoItem, error) {
 }
 
 type server struct {
+	db          *sql.DB
 	logger      *zap.Logger
 	store       *TodoItemsStore
 	unmarshaler *jsonpb.Unmarshaler
 }
 
-func New(logger *zap.Logger) *server {
+func New(db *sql.DB, logger *zap.Logger) *server {
 	return &server{
 		logger: logger,
+		db:     db,
 		store: &TodoItemsStore{
 			items: make(map[string]*todomvc.TodoItem, 100),
 		},
@@ -70,6 +75,15 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		Title: req.Title,
 	}
 	if err := s.store.Save(item); err != nil {
+		internalServerError(w, err)
+		return
+	}
+
+	todo := model.Todo{
+		ID:    id,
+		Title: req.Title,
+	}
+	if err := todo.Insert(r.Context(), s.db, boil.Infer()); err != nil {
 		internalServerError(w, err)
 		return
 	}

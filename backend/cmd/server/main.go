@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/oinume/todomvc/backend/config"
 
 	"go.uber.org/zap"
 
@@ -18,7 +21,14 @@ func main() {
 		log.Fatalf("logging.New failed: %v", err)
 	}
 
-	server := http_server.New(logger)
+	config.MustProcessDefault()
+
+	db, err := sql.Open("mysql", config.DefaultVars.DBURL())
+	if err != nil {
+		panic(err)
+	}
+
+	server := http_server.New(db, logger)
 	router := server.NewRouter()
 	port := os.Getenv("PORT")
 	if port == "" {
