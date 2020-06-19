@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/volatiletech/sqlboiler/boil"
+	"go.opencensus.io/plugin/ochttp"
 	"go.uber.org/zap"
 
 	"github.com/oinume/todomvc/backend/model"
@@ -56,7 +57,8 @@ func New(db *sql.DB, logger *zap.Logger) *server {
 func (s *server) NewRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.Use(accessLogMiddleware(s.logger))
-	r.HandleFunc("/todos", s.CreateTodo).Methods("POST")
+	r.Handle("/todos", ochttp.WithRouteTag(http.HandlerFunc(s.CreateTodo), "/todos")).Methods("POST")
+
 	//r.HandleFunc("/todos", s.fetcher).Methods("GET")
 	//r.HandleFunc("/todos/{id}", s.fetcher).Methods("Put")
 	return r

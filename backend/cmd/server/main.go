@@ -9,6 +9,7 @@ import (
 
 	"contrib.go.opencensus.io/exporter/jaeger"
 	_ "github.com/go-sql-driver/mysql"
+	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 
@@ -27,6 +28,7 @@ func main() {
 
 	// TODO: Stackdriver exporter
 	exporter, err := jaeger.NewExporter(jaeger.Options{
+		Endpoint:          config.DefaultVars.JaegerAgentEndpoint,
 		AgentEndpoint:     config.DefaultVars.JaegerAgentEndpoint,
 		CollectorEndpoint: config.DefaultVars.JaegerCollectorEndpoint,
 		Process: jaeger.Process{
@@ -36,6 +38,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 	trace.RegisterExporter(exporter)
 
 	db, err := sql.Open("mysql", config.DefaultVars.DBURL())
@@ -49,7 +52,10 @@ func main() {
 	router := server.NewRouter()
 	port := config.DefaultVars.HTTPPort
 	logger.Info(fmt.Sprintf("Starting HTTP server on port %d", port))
-	if err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%v", port), router); err != nil {
+	ochttpHandler := &ochttp.Handler{
+		Handler: router,
+	}
+	if err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%v", port), ochttpHandler); err != nil {
 		logger.Fatal("http.ListenAndServe failed", zap.Error(err))
 	}
 	// TODO: graceful shutdown
