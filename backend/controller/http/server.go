@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/oinume/todomvc/backend/repository"
-
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -14,29 +12,13 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/oinume/todomvc/backend/model"
+	"github.com/oinume/todomvc/backend/repository"
 	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
-
-type TodoItemsStore struct {
-	items map[string]*todomvc.TodoItem
-}
-
-func (store *TodoItemsStore) Save(item *todomvc.TodoItem) error {
-	store.items[item.Id] = item
-	return nil
-}
-
-func (store *TodoItemsStore) Load(id string) (*todomvc.TodoItem, error) {
-	if item, ok := store.items[id]; ok {
-		return item, nil
-	}
-	return nil, fmt.Errorf("cannot find TodoItem for %s", id)
-}
 
 type server struct {
 	todoRepo    repository.TodoRepository
 	logger      *zap.Logger
-	store       *TodoItemsStore
 	unmarshaler *jsonpb.Unmarshaler
 }
 
@@ -44,9 +26,6 @@ func NewServer(todoRepo repository.TodoRepository, logger *zap.Logger) *server {
 	return &server{
 		todoRepo: todoRepo,
 		logger:   logger,
-		store: &TodoItemsStore{
-			items: make(map[string]*todomvc.TodoItem, 100),
-		},
 		unmarshaler: &jsonpb.Unmarshaler{
 			AllowUnknownFields: true,
 		},
@@ -71,15 +50,6 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uuid.New().String()
-	item := &todomvc.TodoItem{
-		Id:    id,
-		Title: req.Title,
-	}
-	if err := s.store.Save(item); err != nil {
-		internalServerError(s.logger, w, err)
-		return
-	}
-
 	todo := &model.Todo{
 		ID:    id,
 		Title: req.Title,
@@ -89,7 +59,8 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, item)
+	// TODO: Convert model to proto
+	writeJSON(w, http.StatusCreated, todo)
 }
 
 func internalServerError(logger *zap.Logger, w http.ResponseWriter, err error) {

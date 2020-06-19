@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/oinume/todomvc/backend/infrastructure/mysql"
-
 	"contrib.go.opencensus.io/exporter/jaeger"
 	_ "github.com/go-sql-driver/mysql"
 	"go.opencensus.io/plugin/ochttp"
@@ -16,13 +14,14 @@ import (
 
 	"github.com/oinume/todomvc/backend/config"
 	controller_http "github.com/oinume/todomvc/backend/controller/http"
+	"github.com/oinume/todomvc/backend/infrastructure/mysql"
 	"github.com/oinume/todomvc/backend/logging"
 )
 
 func main() {
 	logger, err := logging.New()
 	if err != nil {
-		log.Fatalf("logging.NewServer failed: %v", err)
+		log.Fatalf("logging.New failed: %v", err)
 	}
 
 	config.MustProcessDefault()
@@ -56,6 +55,7 @@ func main() {
 	ochttpHandler := &ochttp.Handler{
 		Handler: router,
 	}
+	// TODO: Define Server.ListenAndServe method
 	if err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%v", port), ochttpHandler); err != nil {
 		logger.Fatal("http.ListenAndServe failed", zap.Error(err))
 	}
