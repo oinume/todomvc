@@ -13,7 +13,11 @@ type Vars struct {
 	MySQLHost     string `envconfig:"MYSQL_HOST"`
 	MySQLPort     string `envconfig:"MYSQL_PORT"`
 	MySQLDatabase string `envconfig:"MYSQL_DATABASE"`
-	HTTPPort      int    `envconfig:"PORT" default:"5001"`
+
+	HTTPPort int `envconfig:"PORT" default:"5001"`
+
+	JaegerAgentEndpoint     string `enconfig:"JAEGER_AGENT_ENDPOINT"`
+	JaegerCollectorEndpoint string `envconfig:"JAEGER_COLLECTOR_ENDPOINT"`
 }
 
 func Process() (*Vars, error) {
