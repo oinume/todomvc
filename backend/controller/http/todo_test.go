@@ -7,9 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"go.uber.org/zap"
-
 	"github.com/golang/protobuf/jsonpb"
+	"go.uber.org/zap"
 
 	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )

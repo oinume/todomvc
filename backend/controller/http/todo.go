@@ -3,11 +3,10 @@ package http
 import (
 	"net/http"
 
-	"github.com/oinume/todomvc/backend/proto"
-
 	"github.com/google/uuid"
 
 	"github.com/oinume/todomvc/backend/model"
+	"github.com/oinume/todomvc/backend/proto"
 	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
 
