@@ -1,5 +1,5 @@
 // Copied from https://github.com/zenazn/goji/blob/master/web/mutil/writer_proxy_go1_8.go
-package http_server
+package http
 
 import (
 	"bufio"

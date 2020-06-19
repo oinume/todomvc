@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/oinume/todomvc/backend/config"
-	"github.com/oinume/todomvc/backend/http_server"
+	controller_http "github.com/oinume/todomvc/backend/controller/http"
 	"github.com/oinume/todomvc/backend/logging"
 )
 
@@ -48,7 +48,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	server := http_server.New(db, logger)
+	server := controller_http.New(db, logger)
 	router := server.NewRouter()
 	port := config.DefaultVars.HTTPPort
 	logger.Info(fmt.Sprintf("Starting HTTP server on port %d", port))
