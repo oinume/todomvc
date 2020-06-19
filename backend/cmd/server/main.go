@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -43,10 +42,9 @@ func main() {
 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 	trace.RegisterExporter(exporter)
 
-	db, err := sql.Open("mysql", config.DefaultVars.DBURL())
-	// TODO: db.SetMaxIdleConns, etc...
+	db, err := mysql.NewDB(config.DefaultVars.DBURL())
 	if err != nil {
-		logger.Error("sql.Open failed", zap.Error(err))
+		logger.Error("mysql.NewDB failed", zap.Error(err))
 		os.Exit(1)
 	}
 	todoRepository := mysql.NewTodoRepository(db)

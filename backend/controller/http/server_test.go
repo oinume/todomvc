@@ -27,10 +27,9 @@ var (
 func TestMain(m *testing.M) {
 	_ = os.Setenv("MYSQL_DATABASE", "todomvc_test")
 	config.MustProcessDefault()
-	dbURL := config.DefaultVars.DBURL()
-	ldb, err := sql.Open("mysql", dbURL)
+	ldb, err := mysql.NewDB(config.DefaultVars.DBURL())
 	if err != nil {
-		panic("Failed to sql.Open: " + err.Error())
+		panic("Failed to mysql.NewDB: " + err.Error())
 	}
 	db = ldb
 	todoRepo = mysql.NewTodoRepository(db)
