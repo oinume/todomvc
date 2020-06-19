@@ -3,6 +3,8 @@ package http
 import (
 	"net/http"
 
+	"github.com/oinume/todomvc/backend/proto"
+
 	"github.com/google/uuid"
 
 	"github.com/oinume/todomvc/backend/model"
@@ -26,6 +28,5 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Convert model to proto
-	writeJSON(w, http.StatusCreated, todo)
+	writeJSON(w, http.StatusCreated, proto.NewTodoConverter().Convert(todo))
 }
