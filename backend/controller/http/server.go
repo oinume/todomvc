@@ -6,14 +6,11 @@ import (
 	"net/http"
 
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"go.opencensus.io/plugin/ochttp"
 	"go.uber.org/zap"
 
-	"github.com/oinume/todomvc/backend/model"
 	"github.com/oinume/todomvc/backend/repository"
-	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
 
 type server struct {
@@ -40,27 +37,6 @@ func (s *server) NewRouter() *mux.Router {
 	//r.HandleFunc("/todos", s.fetcher).Methods("GET")
 	//r.HandleFunc("/todos/{id}", s.fetcher).Methods("Put")
 	return r
-}
-
-func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
-	req := &todomvc.CreateTodoRequest{}
-	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
-		internalServerError(s.logger, w, err)
-		return
-	}
-
-	id := uuid.New().String()
-	todo := &model.Todo{
-		ID:    id,
-		Title: req.Title,
-	}
-	if err := s.todoRepo.Create(r.Context(), todo); err != nil {
-		internalServerError(s.logger, w, err)
-		return
-	}
-
-	// TODO: Convert model to proto
-	writeJSON(w, http.StatusCreated, todo)
 }
 
 func internalServerError(logger *zap.Logger, w http.ResponseWriter, err error) {
