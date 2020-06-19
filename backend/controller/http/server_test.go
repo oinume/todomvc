@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"database/sql"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -83,7 +84,8 @@ func Test_Server_CreateTodo(t *testing.T) {
 
 			result := rr.Result()
 			if result.StatusCode != http.StatusCreated {
-				t.Fatalf("unexpected status code: got=%v, want=%v", result.StatusCode, http.StatusCreated)
+				body, _ := ioutil.ReadAll(result.Body)
+				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", result.StatusCode, http.StatusCreated, string(body))
 			}
 			got := &todomvc.TodoItem{}
 			if err := u.Unmarshal(result.Body, got); err != nil {

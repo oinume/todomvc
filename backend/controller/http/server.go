@@ -3,7 +3,6 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"github.com/oinume/todomvc/backend/repository"
@@ -67,7 +66,7 @@ func (s *server) NewRouter() *mux.Router {
 func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	req := &todomvc.CreateTodoRequest{}
 	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
-		internalServerError(w, err)
+		internalServerError(s.logger, w, err)
 		return
 	}
 
@@ -77,7 +76,7 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		Title: req.Title,
 	}
 	if err := s.store.Save(item); err != nil {
-		internalServerError(w, err)
+		internalServerError(s.logger, w, err)
 		return
 	}
 
@@ -86,14 +85,14 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		Title: req.Title,
 	}
 	if err := s.todoRepo.Create(r.Context(), todo); err != nil {
-		internalServerError(w, err)
+		internalServerError(s.logger, w, err)
 		return
 	}
 
 	writeJSON(w, http.StatusCreated, item)
 }
 
-func internalServerError(w http.ResponseWriter, err error) {
+func internalServerError(logger *zap.Logger, w http.ResponseWriter, err error) {
 	//switch _ := errors.Cause(err).(type) { // TODO:
 	//default:
 	// unknown error
@@ -116,6 +115,7 @@ func internalServerError(w http.ResponseWriter, err error) {
 	//	appLogger.Error("internalServerError", fields...)
 	//}
 
+	logger.Error("caught error", zap.Error(err))
 	http.Error(w, fmt.Sprintf("Internal server Error\n\n%v", err), http.StatusInternalServerError)
 	//if !config.IsProductionEnv() {
 	//	fmt.Fprintf(w, "----- stacktrace -----\n")
@@ -144,15 +144,15 @@ func writeJSON(w http.ResponseWriter, code int, body interface{}) {
 //	}
 //}
 
-func writeHTMLWithTemplate(
-	w http.ResponseWriter,
-	code int,
-	t *template.Template,
-	data interface{},
-) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(code)
-	if err := t.Execute(w, data); err != nil {
-		internalServerError(w, err)
-	}
-}
+//func writeHTMLWithTemplate(
+//	w http.ResponseWriter,
+//	code int,
+//	t *template.Template,
+//	data interface{},
+//) {
+//	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+//	w.WriteHeader(code)
+//	if err := t.Execute(w, data); err != nil {
+//		internalServerError(w, err)
+//	}
+//}
