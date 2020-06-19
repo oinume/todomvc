@@ -8,6 +8,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/oinume/todomvc/backend/infrastructure/mysql"
+	"github.com/oinume/todomvc/backend/repository"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/jsonpb"
 	"go.uber.org/zap"
@@ -16,7 +19,10 @@ import (
 	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
 
-var db *sql.DB
+var (
+	db       *sql.DB
+	todoRepo repository.TodoRepository
+)
 
 func TestMain(m *testing.M) {
 	_ = os.Setenv("MYSQL_DATABASE", "todomvc_test")
@@ -27,13 +33,14 @@ func TestMain(m *testing.M) {
 		panic("Failed to sql.Open: " + err.Error())
 	}
 	db = ldb
+	todoRepo = mysql.NewTodoRepository(db)
 	os.Exit(m.Run())
 }
 
 func Test_Server_CreateTodo(t *testing.T) {
 	m := &jsonpb.Marshaler{OrigName: true}
 	u := &jsonpb.Unmarshaler{}
-	s := New(db, zap.NewNop())
+	s := NewServer(todoRepo, zap.NewNop())
 
 	type response struct {
 		statusCode int
@@ -45,12 +52,12 @@ func Test_Server_CreateTodo(t *testing.T) {
 	}{
 		"OK_Created": {
 			request: &todomvc.CreateTodoRequest{
-				Title: "New task",
+				Title: "NewServer task",
 			},
 			wantResponse: response{
 				statusCode: http.StatusCreated,
 				todoItem: &todomvc.TodoItem{
-					Title:     "New task",
+					Title:     "NewServer task",
 					Completed: false,
 				},
 			},

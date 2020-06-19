@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/oinume/todomvc/backend/infrastructure/mysql"
+
 	"contrib.go.opencensus.io/exporter/jaeger"
 	_ "github.com/go-sql-driver/mysql"
 	"go.opencensus.io/plugin/ochttp"
@@ -21,7 +23,7 @@ import (
 func main() {
 	logger, err := logging.New()
 	if err != nil {
-		log.Fatalf("logging.New failed: %v", err)
+		log.Fatalf("logging.NewServer failed: %v", err)
 	}
 
 	config.MustProcessDefault()
@@ -47,8 +49,9 @@ func main() {
 		logger.Error("sql.Open failed", zap.Error(err))
 		os.Exit(1)
 	}
+	todoRepository := mysql.NewTodoRepository(db)
 
-	server := controller_http.New(db, logger)
+	server := controller_http.NewServer(todoRepository, logger)
 	router := server.NewRouter()
 	port := config.DefaultVars.HTTPPort
 	logger.Info(fmt.Sprintf("Starting HTTP server on port %d", port))
