@@ -9,15 +9,24 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 service Todos {
-    rpc CreateTodo(CreateTodoRequest) returns (TodoItem) {
+    // https://cloud.google.com/apis/design/standard_methods
+
+    rpc CreateTodo(CreateTodoRequest) returns (Todo) {
         option (google.api.http) = {
             post: "/todos"
             body: "*"
         };
     }
+
+    rpc UpdateTodo(UpdateTodoRequest) returns (Todo) {
+        option (google.api.http) = {
+            patch: "/todos"
+            body: "todo"
+        };
+    }
 }
 
-message TodoItem {
+message Todo {
     string id = 1;
     string title = 2;
     bool completed = 3;
@@ -26,4 +35,9 @@ message TodoItem {
 
 message CreateTodoRequest {
     string title = 1;
+}
+
+message UpdateTodoRequest {
+    Todo todo = 1;
+    // TODO: FieldMask
 }
