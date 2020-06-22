@@ -18,7 +18,6 @@ services:
 #      - ./log/mysql:/var/log/mysql
   jaeger:
     image: "jaegertracing/all-in-one:1.18"
-    container_name: jaeger
     ports:
       - "5775:5775/udp"
       - "6831:6831/udp"
