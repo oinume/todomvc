@@ -1,60 +1,55 @@
-package http_server
+package http
 
 import (
-	"database/sql"
+	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/volatiletech/sqlboiler/boil"
 	"go.opencensus.io/plugin/ochttp"
 	"go.uber.org/zap"
 
-	"github.com/oinume/todomvc/backend/model"
-	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
+	"github.com/oinume/todomvc/backend/repository"
 )
 
-type TodoItemsStore struct {
-	items map[string]*todomvc.TodoItem
-}
-
-func (store *TodoItemsStore) Save(item *todomvc.TodoItem) error {
-	store.items[item.Id] = item
-	return nil
-}
-
-func (store *TodoItemsStore) Load(id string) (*todomvc.TodoItem, error) {
-	if item, ok := store.items[id]; ok {
-		return item, nil
-	}
-	return nil, fmt.Errorf("cannot find TodoItem for %s", id)
-}
-
 type server struct {
-	db          *sql.DB
+	httpServer  *http.Server
+	todoRepo    repository.TodoRepository
 	logger      *zap.Logger
-	store       *TodoItemsStore
 	unmarshaler *jsonpb.Unmarshaler
 }
 
-func New(db *sql.DB, logger *zap.Logger) *server {
-	return &server{
-		logger: logger,
-		db:     db,
-		store: &TodoItemsStore{
-			items: make(map[string]*todomvc.TodoItem, 100),
-		},
+func NewServer(addr string, todoRepo repository.TodoRepository, logger *zap.Logger) *server {
+	s := &server{
+		todoRepo: todoRepo,
+		logger:   logger,
 		unmarshaler: &jsonpb.Unmarshaler{
 			AllowUnknownFields: true,
 		},
 	}
+	router := s.newRouter()
+	ochttpHandler := &ochttp.Handler{
+		Handler: router,
+	}
+	httpServer := &http.Server{
+		Addr:    addr,
+		Handler: ochttpHandler,
+	}
+	s.httpServer = httpServer
+	return s
 }
 
-func (s *server) NewRouter() *mux.Router {
+func (s *server) ListenAndServe() error {
+	return s.httpServer.ListenAndServe()
+}
+
+func (s *server) Shutdown(ctx context.Context) error {
+	return s.httpServer.Shutdown(ctx)
+}
+
+func (s *server) newRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.Use(accessLogMiddleware(s.logger))
 	r.Handle("/todos", ochttp.WithRouteTag(http.HandlerFunc(s.CreateTodo), "/todos")).Methods("POST")
@@ -64,36 +59,7 @@ func (s *server) NewRouter() *mux.Router {
 	return r
 }
 
-func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
-	req := &todomvc.CreateTodoRequest{}
-	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
-		internalServerError(w, err)
-		return
-	}
-
-	id := uuid.New().String()
-	item := &todomvc.TodoItem{
-		Id:    id,
-		Title: req.Title,
-	}
-	if err := s.store.Save(item); err != nil {
-		internalServerError(w, err)
-		return
-	}
-
-	todo := model.Todo{
-		ID:    id,
-		Title: req.Title,
-	}
-	if err := todo.Insert(r.Context(), s.db, boil.Infer()); err != nil {
-		internalServerError(w, err)
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, item)
-}
-
-func internalServerError(w http.ResponseWriter, err error) {
+func internalServerError(logger *zap.Logger, w http.ResponseWriter, err error) {
 	//switch _ := errors.Cause(err).(type) { // TODO:
 	//default:
 	// unknown error
@@ -116,6 +82,7 @@ func internalServerError(w http.ResponseWriter, err error) {
 	//	appLogger.Error("internalServerError", fields...)
 	//}
 
+	logger.Error("caught error", zap.Error(err))
 	http.Error(w, fmt.Sprintf("Internal server Error\n\n%v", err), http.StatusInternalServerError)
 	//if !config.IsProductionEnv() {
 	//	fmt.Fprintf(w, "----- stacktrace -----\n")
@@ -144,15 +111,15 @@ func writeJSON(w http.ResponseWriter, code int, body interface{}) {
 //	}
 //}
 
-func writeHTMLWithTemplate(
-	w http.ResponseWriter,
-	code int,
-	t *template.Template,
-	data interface{},
-) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(code)
-	if err := t.Execute(w, data); err != nil {
-		internalServerError(w, err)
-	}
-}
+//func writeHTMLWithTemplate(
+//	w http.ResponseWriter,
+//	code int,
+//	t *template.Template,
+//	data interface{},
+//) {
+//	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+//	w.WriteHeader(code)
+//	if err := t.Execute(w, data); err != nil {
+//		internalServerError(w, err)
+//	}
+//}

@@ -1,20 +1,22 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"contrib.go.opencensus.io/exporter/jaeger"
 	_ "github.com/go-sql-driver/mysql"
-	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 
 	"github.com/oinume/todomvc/backend/config"
-	"github.com/oinume/todomvc/backend/http_server"
+	controller_http "github.com/oinume/todomvc/backend/controller/http"
+	"github.com/oinume/todomvc/backend/infrastructure/mysql"
 	"github.com/oinume/todomvc/backend/logging"
 )
 
@@ -41,22 +43,27 @@ func main() {
 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 	trace.RegisterExporter(exporter)
 
-	db, err := sql.Open("mysql", config.DefaultVars.DBURL())
-	// TODO: db.SetMaxIdleConns, etc...
+	db, err := mysql.NewDB(config.DefaultVars.DBURL())
 	if err != nil {
-		logger.Error("sql.Open failed", zap.Error(err))
+		logger.Error("mysql.NewDB failed", zap.Error(err))
 		os.Exit(1)
 	}
+	todoRepository := mysql.NewTodoRepository(db)
 
-	server := http_server.New(db, logger)
-	router := server.NewRouter()
-	port := config.DefaultVars.HTTPPort
-	logger.Info(fmt.Sprintf("Starting HTTP server on port %d", port))
-	ochttpHandler := &ochttp.Handler{
-		Handler: router,
+	addr := fmt.Sprintf("127.0.0.1:%v", config.DefaultVars.HTTPPort)
+	server := controller_http.NewServer(addr, todoRepository, logger)
+	logger.Info(fmt.Sprintf("Starting HTTP server on %s", addr))
+	if err := server.ListenAndServe(); err != nil {
+		logger.Fatal("server.ListenAndServe failed", zap.Error(err))
 	}
-	if err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%v", port), ochttpHandler); err != nil {
-		logger.Fatal("http.ListenAndServe failed", zap.Error(err))
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGTERM)
+	<-sigCh
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Error("server.Shutdown failed", zap.Error(err))
 	}
-	// TODO: graceful shutdown
 }
