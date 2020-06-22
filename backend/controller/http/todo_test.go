@@ -20,7 +20,7 @@ func Test_Server_CreateTodo(t *testing.T) {
 
 	type response struct {
 		statusCode int
-		todoItem   *todomvc.TodoItem
+		todoItem   *todomvc.Todo
 	}
 	tests := map[string]struct {
 		request      *todomvc.CreateTodoRequest
@@ -32,7 +32,7 @@ func Test_Server_CreateTodo(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusCreated,
-				todoItem: &todomvc.TodoItem{
+				todoItem: &todomvc.Todo{
 					Title:     "NewServer task",
 					Completed: false,
 				},
@@ -63,7 +63,7 @@ func Test_Server_CreateTodo(t *testing.T) {
 				body, _ := ioutil.ReadAll(result.Body)
 				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", result.StatusCode, http.StatusCreated, string(body))
 			}
-			got := &todomvc.TodoItem{}
+			got := &todomvc.Todo{}
 			if err := u.Unmarshal(result.Body, got); err != nil {
 				t.Fatal(err)
 			}

@@ -11,12 +11,12 @@ func NewTodoConverter() *TodoConverter {
 	return &TodoConverter{}
 }
 
-func (c *TodoConverter) Convert(m *model.Todo) *todomvc.TodoItem {
+func (c *TodoConverter) Convert(m *model.Todo) *todomvc.Todo {
 	completed := false
 	if m.Completed == 1 {
 		completed = true
 	}
-	return &todomvc.TodoItem{
+	return &todomvc.Todo{
 		Id:        m.ID,
 		Title:     m.Title,
 		Completed: completed,
