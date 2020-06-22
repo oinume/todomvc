@@ -27,7 +27,7 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, proto.NewTodoConverter().Convert(todo))
+	writeJSON(w, http.StatusCreated, proto.NewTodoConverter().ToProto(todo))
 }
 
 func (s *server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
@@ -37,15 +37,12 @@ func (s *server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := uuid.New().String()
-	todo := &model.Todo{
-		ID:    id,
-		Title: req.Title,
-	}
-	if err := s.todoRepo.Create(r.Context(), todo); err != nil {
+	converter := proto.NewTodoConverter()
+	todo := converter.ToModel(req.Todo)
+	if err := s.todoRepo.Update(r.Context(), todo); err != nil {
 		internalServerError(s.logger, w, err)
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, proto.NewTodoConverter().Convert(todo))
+	writeJSON(w, http.StatusOK, converter.ToProto(todo))
 }

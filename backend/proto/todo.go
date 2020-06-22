@@ -11,14 +11,26 @@ func NewTodoConverter() *TodoConverter {
 	return &TodoConverter{}
 }
 
-func (c *TodoConverter) Convert(m *model.Todo) *todomvc.Todo {
+func (c *TodoConverter) ToProto(todo *model.Todo) *todomvc.Todo {
 	completed := false
-	if m.Completed == 1 {
+	if todo.Completed == 1 {
 		completed = true
 	}
 	return &todomvc.Todo{
-		Id:        m.ID,
-		Title:     m.Title,
+		Id:        todo.ID,
+		Title:     todo.Title,
 		Completed: completed,
+	}
+}
+
+func (s *TodoConverter) ToModel(todo *todomvc.Todo) *model.Todo {
+	completed := 0
+	if todo.Completed {
+		completed = 1
+	}
+	return &model.Todo{
+		ID:        todo.Id,
+		Title:     todo.Title,
+		Completed: uint8(completed),
 	}
 }
