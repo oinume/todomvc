@@ -8,7 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
+
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/google/go-cmp/cmp"
 	"go.uber.org/zap"
 
 	"github.com/oinume/todomvc/backend/model"
@@ -52,19 +55,16 @@ func Test_Server_CreateTodo(t *testing.T) {
 			if err := m.Marshal(&reqBody, tt.request); err != nil {
 				t.Fatal(err)
 			}
-			req, err := http.NewRequest("POST", "/todos", &reqBody)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := httptest.NewRequest("POST", "/todos", &reqBody)
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
 			s.CreateTodo(rr, req)
 
 			result := rr.Result()
-			if result.StatusCode != http.StatusCreated {
+			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
 				body, _ := ioutil.ReadAll(result.Body)
-				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", result.StatusCode, http.StatusCreated, string(body))
+				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
 			}
 			got := &todomvc.Todo{}
 			if err := u.Unmarshal(result.Body, got); err != nil {
@@ -84,9 +84,10 @@ func Test_Server_CreateTodo(t *testing.T) {
 // TODO: Add error cases
 
 func Test_server_UpdateTodo(t *testing.T) {
+	const title = "New frontend task"
 	type response struct {
 		statusCode int
-		todoItem   *todomvc.Todo
+		todo       *todomvc.Todo
 	}
 	tests := map[string]struct {
 		request      *todomvc.UpdateTodoRequest
@@ -95,21 +96,25 @@ func Test_server_UpdateTodo(t *testing.T) {
 		"OK_Updated": {
 			request: &todomvc.UpdateTodoRequest{
 				Todo: &todomvc.Todo{
-					Id:        "aaa",
-					Title:     "New frontend task",
+					Id:        "", // Set later
+					Title:     title,
 					Completed: true,
 				},
 			},
 			wantResponse: response{
 				statusCode: http.StatusOK,
-				todoItem: &todomvc.Todo{
-					Title:     "NewServer task",
-					Completed: false,
+				todo: &todomvc.Todo{
+					Id:        "", // Set later
+					Title:     title,
+					Completed: true,
 				},
 			},
 		},
 	}
 
+	m := &jsonpb.Marshaler{OrigName: true}
+	u := &jsonpb.Unmarshaler{}
+	s := NewServer("", todoRepo, zap.NewNop())
 	for name, tt := range tests {
 		tt := tt
 		t.Run(name, func(t *testing.T) {
@@ -122,37 +127,32 @@ func Test_server_UpdateTodo(t *testing.T) {
 			if err := todoRepo.Create(ctx, todo); err != nil {
 				t.Fatal(err)
 			}
+			tt.request.Todo.Id = todo.ID
+			tt.wantResponse.todo.Id = todo.ID
 
-			httptest.NewRequest()
-			//var reqBody bytes.Buffer
-			//if err := m.Marshal(&reqBody, tt.request); err != nil {
-			//	t.Fatal(err)
-			//}
-			//req, err := http.NewRequest("POST", "/todos", &reqBody)
-			//if err != nil {
-			//	t.Fatal(err)
-			//}
-			//rr := httptest.NewRecorder()
-			//defer func() { _ = rr.Result().Body.Close() }()
-			//
-			//s.CreateTodo(rr, req)
-			//
-			//result := rr.Result()
-			//if result.StatusCode != http.StatusCreated {
-			//	body, _ := ioutil.ReadAll(result.Body)
-			//	t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", result.StatusCode, http.StatusCreated, string(body))
-			//}
-			//got := &todomvc.Todo{}
-			//if err := u.Unmarshal(result.Body, got); err != nil {
-			//	t.Fatal(err)
-			//}
-			//if got.Id == "" {
-			//	t.Fatal("got.ID is empty")
-			//}
-			//if got, want := got.Title, test.request.Title; got != want {
-			//	// TODO: Use go-cmp
-			//	t.Fatalf("unexpected Title: got=%v, want=%v", got, want)
-			//}
+			var reqBody bytes.Buffer
+			if err := m.Marshal(&reqBody, tt.request); err != nil {
+				t.Fatal(err)
+			}
+			req := httptest.NewRequest("PATCH", "/todos", &reqBody)
+			rr := httptest.NewRecorder()
+			defer func() { _ = rr.Result().Body.Close() }()
+
+			s.UpdateTodo(rr, req)
+
+			result := rr.Result()
+			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
+				body, _ := ioutil.ReadAll(result.Body)
+				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
+			}
+
+			got := &todomvc.Todo{}
+			if err := u.Unmarshal(result.Body, got); err != nil {
+				t.Fatal(err)
+			}
+			if diff := cmp.Diff(tt.wantResponse.todo, got, cmpopts.IgnoreUnexported(todomvc.Todo{})); diff != "" {
+				t.Fatalf("UpdateTodo response mismatch (-want +got):\n%s", diff)
+			}
 		})
 	}
 }
