@@ -40,7 +40,7 @@ test/db/goose/%:
 
 .PHONY: test/coverage
 test/coverage:
-	$(GO_TEST) -coverprofile=coverage.txt -covermode=atomic
+	$(GO_TEST) -coverprofile=coverage.txt -covermode=atomic ./...
 
 .PHONY: proto/go
 proto/go:
