@@ -1,6 +1,7 @@
 # todomvc
-[
+
 [![Actions/Build](https://github.com/oinume/todomvc/workflows/ci/badge.svg)](https://github.com/oinume/todomvc/actions?query=workflow%3Aci)
+[![Codecov](https://codecov.io/gh/oinume/todomvc/branch/master/graph/badge.svg)](https://codecov.io/gh/oinume/todomvc)
 
 This is a todomvc backend implementation in Go.
 
