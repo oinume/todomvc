@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -14,22 +15,41 @@ import (
 )
 
 type server struct {
+	httpServer  *http.Server
 	todoRepo    repository.TodoRepository
 	logger      *zap.Logger
 	unmarshaler *jsonpb.Unmarshaler
 }
 
-func NewServer(todoRepo repository.TodoRepository, logger *zap.Logger) *server {
-	return &server{
+func NewServer(addr string, todoRepo repository.TodoRepository, logger *zap.Logger) *server {
+	s := &server{
 		todoRepo: todoRepo,
 		logger:   logger,
 		unmarshaler: &jsonpb.Unmarshaler{
 			AllowUnknownFields: true,
 		},
 	}
+	router := s.newRouter()
+	ochttpHandler := &ochttp.Handler{
+		Handler: router,
+	}
+	httpServer := &http.Server{
+		Addr:    addr,
+		Handler: ochttpHandler,
+	}
+	s.httpServer = httpServer
+	return s
 }
 
-func (s *server) NewRouter() *mux.Router {
+func (s *server) ListenAndServe() error {
+	return s.httpServer.ListenAndServe()
+}
+
+func (s *server) Shutdown(ctx context.Context) error {
+	return s.httpServer.Shutdown(ctx)
+}
+
+func (s *server) newRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.Use(accessLogMiddleware(s.logger))
 	r.Handle("/todos", ochttp.WithRouteTag(http.HandlerFunc(s.CreateTodo), "/todos")).Methods("POST")
