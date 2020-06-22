@@ -8,10 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/google/go-cmp/cmp/cmpopts"
-
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"go.uber.org/zap"
 
 	"github.com/oinume/todomvc/backend/model"
@@ -71,10 +70,9 @@ func Test_Server_CreateTodo(t *testing.T) {
 				t.Fatal(err)
 			}
 			if got.Id == "" {
-				t.Fatal("got.ID is empty")
+				t.Fatal("got.Id is empty")
 			}
 			if got, want := got.Title, tt.request.Title; got != want {
-				// TODO: Use go-cmp
 				t.Fatalf("unexpected Title: got=%v, want=%v", got, want)
 			}
 		})
