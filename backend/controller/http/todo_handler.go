@@ -39,6 +39,7 @@ func (s *server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 	converter := proto.NewTodoConverter()
 	todo := converter.ToModel(req.Todo)
+	// TODO: not found check
 	if err := s.todoRepo.Update(r.Context(), todo); err != nil {
 		internalServerError(s.logger, w, err)
 		return
