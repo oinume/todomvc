@@ -16,7 +16,7 @@ import (
 func Test_Server_CreateTodo(t *testing.T) {
 	m := &jsonpb.Marshaler{OrigName: true}
 	u := &jsonpb.Unmarshaler{}
-	s := NewServer(todoRepo, zap.NewNop())
+	s := NewServer("", todoRepo, zap.NewNop())
 
 	type response struct {
 		statusCode int
