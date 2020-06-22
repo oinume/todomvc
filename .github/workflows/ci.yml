@@ -46,4 +46,12 @@ jobs:
           make test/db/goose/up
       - name: Run tests
         run: |
-          make test
+          make test/coverage
+      - name: Upload to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.txt
+          fail_ci_if_error: false
+#          flags: unittests # optional
+#          name: codecov-umbrella # optional

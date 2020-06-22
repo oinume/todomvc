@@ -20,3 +20,5 @@ tools/bin/
 /.env
 /sqlboiler.toml
 
+coverage.txt
+

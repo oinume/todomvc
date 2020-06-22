@@ -38,6 +38,10 @@ test:
 test/db/goose/%:
 	goose -dir ./db/migration mysql "$(MYSQL_USER):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT))/todomvc_test?charset=utf8mb4&parseTime=true&loc=UTC" $*
 
+.PHONY: test/coverage
+test/coverage:
+	$(GO_TEST) -coverprofile=coverage.txt -covermode=atomic ./...
+
 .PHONY: proto/go
 proto/go:
 	rm -rf $(PROTO_GEN_DIR)/go && mkdir -p $(PROTO_GEN_DIR)/go
