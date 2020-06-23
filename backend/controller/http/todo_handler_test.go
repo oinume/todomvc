@@ -154,3 +154,66 @@ func Test_server_UpdateTodo(t *testing.T) {
 		})
 	}
 }
+
+func Test_server_UpdateTodo_Error(t *testing.T) {
+	const title = "New frontend task"
+	type response struct {
+		statusCode int
+		todo       *todomvc.Todo // TODO: error response
+	}
+	tests := map[string]struct {
+		request      *todomvc.UpdateTodoRequest
+		wantResponse response
+	}{
+		"NotFound": {
+			request: &todomvc.UpdateTodoRequest{
+				Todo: &todomvc.Todo{
+					Id:        "not_found",
+					Title:     title,
+					Completed: true,
+				},
+			},
+			wantResponse: response{
+				statusCode: http.StatusNotFound,
+				todo: &todomvc.Todo{
+					Id:        "not_found",
+					Title:     title,
+					Completed: true,
+				},
+			},
+		},
+	}
+
+	m := &jsonpb.Marshaler{OrigName: true}
+	s := NewServer("", todoRepo, zap.NewNop())
+	for name, tt := range tests {
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			todo := modeltest.NewTodo(func(todo *model.Todo) {
+				todo.Title = "New frontend task"
+			})
+			if err := todoRepo.Create(ctx, todo); err != nil {
+				t.Fatal(err)
+			}
+
+			var reqBody bytes.Buffer
+			if err := m.Marshal(&reqBody, tt.request); err != nil {
+				t.Fatal(err)
+			}
+			req := httptest.NewRequest("PATCH", "/todos", &reqBody)
+			rr := httptest.NewRecorder()
+			defer func() { _ = rr.Result().Body.Close() }()
+
+			s.UpdateTodo(rr, req)
+
+			result := rr.Result()
+			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
+				body, _ := ioutil.ReadAll(result.Body)
+				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
+			}
+		})
+	}
+}

@@ -37,10 +37,15 @@ func (s *server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx := r.Context()
 	converter := proto.NewTodoConverter()
 	todo := converter.ToModel(req.Todo)
-	// TODO: not found check
-	if err := s.todoRepo.Update(r.Context(), todo); err != nil {
+	if _, err := s.todoRepo.FindOne(ctx, todo.ID); err != nil {
+		// TODO: not found error body
+		writeJSON(w, http.StatusNotFound, struct{}{})
+		return
+	}
+	if err := s.todoRepo.Update(ctx, todo); err != nil {
 		internalServerError(s.logger, w, err)
 		return
 	}
