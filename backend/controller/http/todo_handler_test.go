@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"go.uber.org/zap"
@@ -19,10 +20,6 @@ import (
 )
 
 func Test_Server_CreateTodo(t *testing.T) {
-	m := &jsonpb.Marshaler{OrigName: true}
-	u := &jsonpb.Unmarshaler{}
-	s := NewServer("", todoRepo, zap.NewNop())
-
 	type response struct {
 		statusCode int
 		todoItem   *todomvc.Todo
@@ -45,16 +42,15 @@ func Test_Server_CreateTodo(t *testing.T) {
 		},
 	}
 
+	m := &jsonpb.Marshaler{OrigName: true}
+	u := &jsonpb.Unmarshaler{}
+	s := NewServer("", todoRepo, zap.NewNop())
 	for name, tt := range tests {
 		tt := tt
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			var reqBody bytes.Buffer
-			if err := m.Marshal(&reqBody, tt.request); err != nil {
-				t.Fatal(err)
-			}
-			req := httptest.NewRequest("POST", "/todos", &reqBody)
+			req := newHTTPRequest(t, m, "POST", "/todos", tt.request)
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
@@ -128,11 +124,7 @@ func Test_server_UpdateTodo(t *testing.T) {
 			tt.request.Todo.Id = todo.ID
 			tt.wantResponse.todo.Id = todo.ID
 
-			var reqBody bytes.Buffer
-			if err := m.Marshal(&reqBody, tt.request); err != nil {
-				t.Fatal(err)
-			}
-			req := httptest.NewRequest("PATCH", "/todos", &reqBody)
+			req := newHTTPRequest(t, m, "PATCH", "/todos", tt.request)
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
@@ -199,11 +191,7 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			var reqBody bytes.Buffer
-			if err := m.Marshal(&reqBody, tt.request); err != nil {
-				t.Fatal(err)
-			}
-			req := httptest.NewRequest("PATCH", "/todos", &reqBody)
+			req := newHTTPRequest(t, m, "PATCH", "/todos", tt.request)
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
@@ -216,4 +204,17 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 			}
 		})
 	}
+}
+
+func newHTTPRequest(t *testing.T, m *jsonpb.Marshaler, method, path string, request proto.Message) *http.Request {
+	t.Helper()
+	var reqBody bytes.Buffer
+	if err := m.Marshal(&reqBody, request); err != nil {
+		t.Fatalf("Marshal failed: %v", err)
+	}
+	req, err := http.NewRequest(method, path, &reqBody)
+	if err != nil {
+		t.Fatalf("http.NewRequest failed: %v", err)
+	}
+	return req
 }
