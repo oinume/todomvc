@@ -5,6 +5,7 @@ go 1.14
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	github.com/friendsofgo/errors v0.9.2
+	github.com/go-playground/validator/v10 v10.3.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
