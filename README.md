@@ -13,6 +13,7 @@ This is a todomvc backend implementation in Go.
 - Database: [MySQL](https://www.mysql.com/)
 - ORMapper: [volatiletech/sqlboiler](https://github.com/volatiletech/sqlboiler)
 - DI: google/wire (TBD)
+- Validation: [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate) (TBD)
 - Logging: [uber-go/zap](https://github.com/uber-go/zap)
 - Tracing: [OpenCensus](https://opencensus.io/) + [Jaeger](https://www.jaegertracing.io/)
 

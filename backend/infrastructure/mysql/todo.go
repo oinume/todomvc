@@ -24,3 +24,12 @@ func NewTodoRepository(db *sql.DB) repository.TodoRepository {
 func (r *todoRepository) Create(ctx context.Context, todo *model.Todo) error {
 	return todo.Insert(ctx, r.db, boil.Infer())
 }
+
+func (r *todoRepository) Update(ctx context.Context, todo *model.Todo) error {
+	_, err := todo.Update(ctx, r.db, boil.Infer())
+	return err
+}
+
+func (r *todoRepository) FindOne(ctx context.Context, id string) (*model.Todo, error) {
+	return model.FindTodo(ctx, r.db, id)
+}
