@@ -46,12 +46,13 @@ test/coverage:
 .PHONY: proto/go
 proto/go:
 	rm -rf $(PROTO_GEN_DIR)/go && mkdir -p $(PROTO_GEN_DIR)/go
-	protoc -I/usr/local/include -I. -I./proto -I./proto/third-party \
+	protoc -I/usr/local/include -I. -I./proto \
   		-I$(GOPATH)/src \
-		-I$(GOPATH)/src/github.com/envoyproxy/protoc-gen-validate \
+		-Iproto/third_party \
   		--go_out=$(PROTO_GEN_DIR)/go \
-  		--validate_out="lang=go:$(PROTO_GEN_DIR)/go" \
   		--go_opt=paths=source_relative \
+  		--validate_out="lang=go:$(PROTO_GEN_DIR)/go" \
+  		--validate_opt=paths=source_relative \
 		--experimental_allow_proto3_optional \
   		./proto/todomvc/*.proto
 #	protoc -I/usr/local/include -I. -I./proto -I./proto/third-party \
