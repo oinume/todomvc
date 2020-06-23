@@ -15,8 +15,8 @@ setup: install-commands install-tools
 .PHONY: install-commands
 install-commands:
 	$(GO_GET) google.golang.org/protobuf/cmd/protoc-gen-go@v1.24.0
+	$(GO_GET) github.com/envoyproxy/protoc-gen-validate
 #	$(GO_GET) github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-#	$(GO_GET) https://github.com/golang/protobuf/tree/master/protoc-gen-go@v1.4.2
 
 .PHONY: install-tools
 install-tools:
