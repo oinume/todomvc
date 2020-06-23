@@ -15,7 +15,8 @@ setup: install-commands install-tools
 .PHONY: install-commands
 install-commands:
 	$(GO_GET) google.golang.org/protobuf/cmd/protoc-gen-go@v1.24.0
-	$(GO_GET) github.com/envoyproxy/protoc-gen-validate
+	go get -d github.com/envoyproxy/protoc-gen-validate
+#	$(GO_GET) github.com/envoyproxy/protoc-gen-validate
 #	$(GO_GET) github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 
 .PHONY: install-tools
@@ -47,7 +48,9 @@ proto/go:
 	rm -rf $(PROTO_GEN_DIR)/go && mkdir -p $(PROTO_GEN_DIR)/go
 	protoc -I/usr/local/include -I. -I./proto -I./proto/third-party \
   		-I$(GOPATH)/src \
+		-I$(GOPATH)/src/github.com/envoyproxy/protoc-gen-validate \
   		--go_out=$(PROTO_GEN_DIR)/go \
+  		--validate_out="lang=go:$(PROTO_GEN_DIR)/go" \
   		--go_opt=paths=source_relative \
 		--experimental_allow_proto3_optional \
   		./proto/todomvc/*.proto
