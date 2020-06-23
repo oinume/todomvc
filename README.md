@@ -20,3 +20,4 @@ This is a todomvc backend implementation in Go.
 ## CI
 
 - GitHub Actions
+- Lint: [golangci/golangci-lint](https://github.com/golangci/golangci-lint) (TBD)
