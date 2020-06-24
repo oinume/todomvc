@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/gorilla/mux"
 	"go.opencensus.io/plugin/ochttp"
@@ -19,6 +20,7 @@ type server struct {
 	todoRepo    repository.TodoRepository
 	logger      *zap.Logger
 	unmarshaler *jsonpb.Unmarshaler
+	validator   *validator.Validate
 }
 
 func NewServer(addr string, todoRepo repository.TodoRepository, logger *zap.Logger) *server {
@@ -28,6 +30,7 @@ func NewServer(addr string, todoRepo repository.TodoRepository, logger *zap.Logg
 		unmarshaler: &jsonpb.Unmarshaler{
 			AllowUnknownFields: true,
 		},
+		validator: validator.New(),
 	}
 	router := s.newRouter()
 	ochttpHandler := &ochttp.Handler{
@@ -60,29 +63,11 @@ func (s *server) newRouter() *mux.Router {
 	return r
 }
 
-func internalServerError(logger *zap.Logger, w http.ResponseWriter, err error) {
-	//switch _ := errors.Cause(err).(type) { // TODO:
-	//default:
-	// unknown error
-	//sUserID := ""
-	//if userID == 0 {
-	//	sUserID = fmt.Sprint(userID)
-	//}
-	//util.SendErrorToRollbar(err, sUserID)
-	//fields := []zapcore.Field{
-	//	zap.Error(err),
-	//}
-	//if e, ok := err.(errors.StackTracer); ok {
-	//	b := &bytes.Buffer{}
-	//	for _, f := range e.StackTrace() {
-	//		fmt.Fprintf(b, "%+v\n", f)
-	//	}
-	//	fields = append(fields, zap.String("stacktrace", b.String()))
-	//}
-	//if appLogger != nil {
-	//	appLogger.Error("internalServerError", fields...)
-	//}
+func validationError(w http.ResponseWriter, err error) {
+	http.Error(w, err.Error(), http.StatusBadRequest)
+}
 
+func internalServerError(logger *zap.Logger, w http.ResponseWriter, err error) {
 	logger.Error("caught error", zap.Error(err))
 	http.Error(w, fmt.Sprintf("Internal server Error\n\n%v", err), http.StatusInternalServerError)
 	//if !config.IsProductionEnv() {

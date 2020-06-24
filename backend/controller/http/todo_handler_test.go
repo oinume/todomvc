@@ -157,6 +157,23 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 		request      *todomvc.UpdateTodoRequest
 		wantResponse response
 	}{
+		"BadRequest_TitleIsTooLong": {
+			request: &todomvc.UpdateTodoRequest{
+				Todo: &todomvc.Todo{
+					Id:        "",
+					Title:     "012345678901234567890", // 21 char
+					Completed: true,
+				},
+			},
+			wantResponse: response{
+				statusCode: http.StatusBadRequest,
+				todo: &todomvc.Todo{
+					Id:        "not_found",
+					Title:     title,
+					Completed: true,
+				},
+			},
+		},
 		"NotFound": {
 			request: &todomvc.UpdateTodoRequest{
 				Todo: &todomvc.Todo{
