@@ -73,7 +73,7 @@ func validationError(w http.ResponseWriter, err error) {
 		return
 	}
 
-	r := &todomvc.ErrorResponse{
+	r := &todomvc.Error{
 		Code:    code.Code_INVALID_ARGUMENT,
 		Message: "Validation error",
 	}
