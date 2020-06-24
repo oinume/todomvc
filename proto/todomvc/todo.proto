@@ -41,3 +41,6 @@ message UpdateTodoRequest {
     Todo todo = 1;
     // TODO: FieldMask
 }
+
+// TODO: Define validation error response
+// TODO: Define general error response (e.g. InternalServerError)

@@ -75,7 +75,47 @@ func Test_Server_CreateTodo(t *testing.T) {
 	}
 }
 
-// TODO: Add error cases
+func Test_Server_CreateTodo_Error(t *testing.T) {
+	type response struct {
+		statusCode int
+		todoItem   *todomvc.Todo
+	}
+	tests := map[string]struct {
+		request      *todomvc.CreateTodoRequest
+		wantResponse response
+	}{
+		"BadRequest_TitleIsTooLong": {
+			request: &todomvc.CreateTodoRequest{
+				Title: "012345678901234567890123456789012345678901234567890", // 51 char
+			},
+			wantResponse: response{
+				statusCode: http.StatusBadRequest,
+				// TODO: body
+			},
+		},
+	}
+
+	m := &jsonpb.Marshaler{OrigName: true}
+	s := NewServer("", todoRepo, zap.NewNop())
+	for name, tt := range tests {
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			req := newHTTPRequest(t, m, "POST", "/todos", tt.request)
+			rr := httptest.NewRecorder()
+			defer func() { _ = rr.Result().Body.Close() }()
+
+			s.CreateTodo(rr, req)
+
+			result := rr.Result()
+			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
+				body, _ := ioutil.ReadAll(result.Body)
+				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
+			}
+		})
+	}
+}
 
 func Test_server_UpdateTodo(t *testing.T) {
 	const title = "New frontend task"
@@ -157,23 +197,6 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 		request      *todomvc.UpdateTodoRequest
 		wantResponse response
 	}{
-		"BadRequest_TitleIsTooLong": {
-			request: &todomvc.UpdateTodoRequest{
-				Todo: &todomvc.Todo{
-					Id:        "",
-					Title:     "012345678901234567890", // 21 char
-					Completed: true,
-				},
-			},
-			wantResponse: response{
-				statusCode: http.StatusBadRequest,
-				todo: &todomvc.Todo{
-					Id:        "not_found",
-					Title:     title,
-					Completed: true,
-				},
-			},
-		},
 		"NotFound": {
 			request: &todomvc.UpdateTodoRequest{
 				Todo: &todomvc.Todo{
