@@ -6,7 +6,6 @@ option go_package = "github.com/oinume/todomvc/proto-gen/go/proto/todomvc";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 
 service Todos {
     // https://cloud.google.com/apis/design/standard_methods

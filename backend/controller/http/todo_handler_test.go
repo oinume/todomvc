@@ -10,19 +10,19 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"go.uber.org/zap"
+	"google.golang.org/genproto/googleapis/rpc/code"
 
 	"github.com/oinume/todomvc/backend/model"
 	"github.com/oinume/todomvc/backend/modeltest"
+	"github.com/oinume/todomvc/backend/testings"
 	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
 
 func Test_Server_CreateTodo(t *testing.T) {
 	type response struct {
 		statusCode int
-		todoItem   *todomvc.Todo
+		todo       *todomvc.Todo
 	}
 	tests := map[string]struct {
 		request      *todomvc.CreateTodoRequest
@@ -34,7 +34,7 @@ func Test_Server_CreateTodo(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusCreated,
-				todoItem: &todomvc.Todo{
+				todo: &todomvc.Todo{
 					Title:     "NewServer task",
 					Completed: false,
 				},
@@ -68,14 +68,74 @@ func Test_Server_CreateTodo(t *testing.T) {
 			if got.Id == "" {
 				t.Fatal("got.Id is empty")
 			}
-			if got, want := got.Title, tt.request.Title; got != want {
-				t.Fatalf("unexpected Title: got=%v, want=%v", got, want)
-			}
+			testings.RequireEqual(t, tt.request.Title, got.Title, "unexpected Title")
 		})
 	}
 }
 
-// TODO: Add error cases
+func Test_Server_CreateTodo_Error(t *testing.T) {
+	type response struct {
+		statusCode int
+		error      *todomvc.Error
+	}
+	tests := map[string]struct {
+		request      *todomvc.CreateTodoRequest
+		wantResponse response
+	}{
+		"BadRequest_TitleIsEmpty": {
+			request: &todomvc.CreateTodoRequest{
+				Title: "",
+			},
+			wantResponse: response{
+				statusCode: http.StatusBadRequest,
+				error: &todomvc.Error{
+					Code:    code.Code_INVALID_ARGUMENT,
+					Message: "Validation error",
+				},
+			},
+		},
+		"BadRequest_TitleIsTooLong": {
+			request: &todomvc.CreateTodoRequest{
+				Title: "012345678901234567890123456789012345678901234567890", // 51 char
+			},
+			wantResponse: response{
+				statusCode: http.StatusBadRequest,
+				error: &todomvc.Error{
+					Code:    code.Code_INVALID_ARGUMENT,
+					Message: "Validation error",
+				},
+			},
+		},
+	}
+
+	m := &jsonpb.Marshaler{OrigName: true}
+	u := &jsonpb.Unmarshaler{}
+	s := NewServer("", todoRepo, zap.NewNop())
+	for name, tt := range tests {
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			req := newHTTPRequest(t, m, "POST", "/todos", tt.request)
+			rr := httptest.NewRecorder()
+			defer func() { _ = rr.Result().Body.Close() }()
+
+			s.CreateTodo(rr, req)
+
+			result := rr.Result()
+			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
+				body, _ := ioutil.ReadAll(result.Body)
+				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
+			}
+
+			gotResponse := &todomvc.Error{}
+			if err := u.Unmarshal(result.Body, gotResponse); err != nil {
+				t.Fatalf("Unmarshal failed: %v", err)
+			}
+			testings.RequireEqual(t, tt.wantResponse.error, gotResponse, "CreateTodo unexpected response")
+		})
+	}
+}
 
 func Test_server_UpdateTodo(t *testing.T) {
 	const title = "New frontend task"
@@ -140,9 +200,7 @@ func Test_server_UpdateTodo(t *testing.T) {
 			if err := u.Unmarshal(result.Body, got); err != nil {
 				t.Fatal(err)
 			}
-			if diff := cmp.Diff(tt.wantResponse.todo, got, cmpopts.IgnoreUnexported(todomvc.Todo{})); diff != "" {
-				t.Fatalf("UpdateTodo response mismatch (-want +got):\n%s", diff)
-			}
+			testings.RequireEqual(t, tt.wantResponse.todo, got, "UpdateTodo unexected response")
 		})
 	}
 }
@@ -151,7 +209,7 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 	const title = "New frontend task"
 	type response struct {
 		statusCode int
-		todo       *todomvc.Todo // TODO: error response
+		error      *todomvc.Error
 	}
 	tests := map[string]struct {
 		request      *todomvc.UpdateTodoRequest
@@ -167,16 +225,13 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 			},
 			wantResponse: response{
 				statusCode: http.StatusNotFound,
-				todo: &todomvc.Todo{
-					Id:        "not_found",
-					Title:     title,
-					Completed: true,
-				},
+				error:      &todomvc.Error{},
 			},
 		},
 	}
 
 	m := &jsonpb.Marshaler{OrigName: true}
+	u := &jsonpb.Unmarshaler{}
 	s := NewServer("", todoRepo, zap.NewNop())
 	for name, tt := range tests {
 		tt := tt
@@ -201,6 +256,11 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
 				body, _ := ioutil.ReadAll(result.Body)
 				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
+			}
+
+			gotError := &todomvc.Error{}
+			if err := u.Unmarshal(result.Body, gotError); err != nil {
+				testings.RequireEqual(t, tt.wantResponse.error, gotError, "UpdateTodo unexpected response")
 			}
 		})
 	}
