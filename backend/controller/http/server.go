@@ -8,11 +8,14 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"go.opencensus.io/plugin/ochttp"
 	"go.uber.org/zap"
+	"google.golang.org/genproto/googleapis/rpc/code"
 
 	"github.com/oinume/todomvc/backend/repository"
+	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
 
 type server struct {
@@ -64,7 +67,22 @@ func (s *server) newRouter() *mux.Router {
 }
 
 func validationError(w http.ResponseWriter, err error) {
-	http.Error(w, err.Error(), http.StatusBadRequest)
+	_, ok := err.(validator.ValidationErrors)
+	if !ok {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	r := &todomvc.ErrorResponse{
+		Code:    code.Code_INVALID_ARGUMENT,
+		Message: "Validation error",
+	}
+	// TODO: Map errors to ErrorResponse
+	//for _, e := range errors {
+	//	e.Field()
+	//}
+
+	writeJSONProto(w, http.StatusBadRequest, r)
 }
 
 func internalServerError(logger *zap.Logger, w http.ResponseWriter, err error) {
@@ -85,6 +103,18 @@ func writeJSON(w http.ResponseWriter, code int, body interface{}) {
 	//w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)
 	if err := json.NewEncoder(w).Encode(body); err != nil {
+		http.Error(w, `{ "status": "Failed to Encode as writeJSON" }`, http.StatusInternalServerError)
+	}
+}
+
+func writeJSONProto(w http.ResponseWriter, code int, message proto.Message) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(code)
+	m := &jsonpb.Marshaler{
+		EmitDefaults: false,
+		OrigName:     true,
+	}
+	if err := m.Marshal(w, message); err != nil {
 		http.Error(w, `{ "status": "Failed to Encode as writeJSON" }`, http.StatusInternalServerError)
 	}
 }
