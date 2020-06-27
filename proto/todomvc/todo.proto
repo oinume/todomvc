@@ -6,6 +6,7 @@ option go_package = "github.com/oinume/todomvc/proto-gen/go/proto/todomvc";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 service Todos {
     // https://cloud.google.com/apis/design/standard_methods
@@ -19,8 +20,15 @@ service Todos {
 
     rpc UpdateTodo(UpdateTodoRequest) returns (Todo) {
         option (google.api.http) = {
-            patch: "/todos"
+            patch: "/todos/{id}"
             body: "todo"
+        };
+    }
+
+    rpc DeleteTodo(DeleteTodoRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/todos/{id}"
+            body: "*"
         };
     }
 }
@@ -40,3 +48,5 @@ message UpdateTodoRequest {
     Todo todo = 1;
     // TODO: FieldMask
 }
+
+message DeleteTodoRequest {}
