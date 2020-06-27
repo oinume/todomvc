@@ -59,7 +59,8 @@ func (s *server) newRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.Use(accessLogMiddleware(s.logger))
 	r.Handle("/todos", ochttp.WithRouteTag(http.HandlerFunc(s.CreateTodo), "/todos")).Methods("POST")
-	r.Handle("/todos", ochttp.WithRouteTag(http.HandlerFunc(s.UpdateTodo), "/todos")).Methods("PATCH")
+	r.Handle("/todos", ochttp.WithRouteTag(http.HandlerFunc(s.UpdateTodo), "/todos/{id}")).Methods("PATCH")
+	r.Handle("/todos", ochttp.WithRouteTag(http.HandlerFunc(s.UpdateTodo), "/todos/{id}")).Methods("DELETE")
 
 	//r.HandleFunc("/todos", s.fetcher).Methods("GET")
 	//r.HandleFunc("/todos/{id}", s.fetcher).Methods("Put")
@@ -117,6 +118,11 @@ func writeJSONProto(w http.ResponseWriter, code int, message proto.Message) {
 	if err := m.Marshal(w, message); err != nil {
 		http.Error(w, `{ "status": "Failed to Encode as writeJSON" }`, http.StatusInternalServerError)
 	}
+}
+
+func writeNoContent(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 //func writeHTML(w http.ResponseWriter, code int, body string) {

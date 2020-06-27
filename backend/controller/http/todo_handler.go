@@ -1,9 +1,11 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 
 	"github.com/oinume/todomvc/backend/model"
 	"github.com/oinume/todomvc/backend/proto"
@@ -78,4 +80,26 @@ func (s *server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, converter.ToProto(todo))
+}
+
+func (s *server) DeleteTodo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		internalServerError(s.logger, w, errors.New("no id"))
+		return
+	}
+
+	req := &todomvc.DeleteTodoRequest{}
+	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
+		internalServerError(s.logger, w, err)
+		return
+	}
+
+	ctx := r.Context()
+	if err := s.todoRepo.Delete(ctx, id); err != nil {
+		internalServerError(s.logger, w, err)
+	}
+
+	writeNoContent(w)
 }
