@@ -91,7 +91,7 @@ func (s *server) DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	deleted, err := s.todoRepo.Delete(ctx, id)
+	deleted, err := s.todoRepo.DeleteByID(ctx, id)
 	if err != nil {
 		internalServerError(s.logger, w, err)
 	}

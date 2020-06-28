@@ -34,7 +34,10 @@ func (r *todoRepository) FindOne(ctx context.Context, id string) (*model.Todo, e
 	return model.FindTodo(ctx, r.db, id)
 }
 
-func (r *todoRepository) Delete(ctx context.Context, id string) (int64, error) {
-	todo := &model.Todo{ID: id}
+func (r *todoRepository) Delete(ctx context.Context, todo *model.Todo) (int64, error) {
 	return todo.Delete(ctx, r.db)
+}
+
+func (r *todoRepository) DeleteByID(ctx context.Context, id string) (int64, error) {
+	return r.Delete(ctx, &model.Todo{ID: id})
 }
