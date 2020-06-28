@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,14 +21,16 @@ import (
 
 type server struct {
 	httpServer  *http.Server
+	db          *sql.DB
 	todoRepo    repository.TodoRepository
 	logger      *zap.Logger
 	unmarshaler *jsonpb.Unmarshaler
 	validator   *validator.Validate
 }
 
-func NewServer(addr string, todoRepo repository.TodoRepository, logger *zap.Logger) *server {
+func NewServer(addr string, db *sql.DB, todoRepo repository.TodoRepository, logger *zap.Logger) *server {
 	s := &server{
+		db:       db,
 		todoRepo: todoRepo,
 		logger:   logger,
 		unmarshaler: &jsonpb.Unmarshaler{

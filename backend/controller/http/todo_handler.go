@@ -42,7 +42,7 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		ID:    id,
 		Title: req.Title,
 	}
-	if err := s.todoRepo.Create(r.Context(), todo); err != nil {
+	if err := s.todoRepo.Create(r.Context(), s.todoRepo.dbtodo); err != nil {
 		internalServerError(s.logger, w, err)
 		return
 	}

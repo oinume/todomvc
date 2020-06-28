@@ -51,7 +51,7 @@ func main() {
 	todoRepository := mysql.NewTodoRepository(db)
 
 	addr := fmt.Sprintf("127.0.0.1:%v", config.DefaultVars.HTTPPort)
-	server := controller_http.NewServer(addr, todoRepository, logger)
+	server := controller_http.NewServer(addr, db, todoRepository, logger)
 	logger.Info(fmt.Sprintf("Starting HTTP server on %s", addr))
 	if err := server.ListenAndServe(); err != nil {
 		logger.Fatal("server.ListenAndServe failed", zap.Error(err))

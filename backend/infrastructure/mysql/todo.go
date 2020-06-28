@@ -21,8 +21,8 @@ func NewTodoRepository(db *sql.DB) repository.TodoRepository {
 	}
 }
 
-func (r *todoRepository) Create(ctx context.Context, todo *model.Todo) error {
-	return todo.Insert(ctx, r.db, boil.Infer())
+func (r *todoRepository) Create(ctx context.Context, executor repository.ContextExecutor, todo *model.Todo) error {
+	return todo.Insert(ctx, executor, boil.Infer())
 }
 
 func (r *todoRepository) Update(ctx context.Context, todo *model.Todo) error {

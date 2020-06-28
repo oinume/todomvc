@@ -45,7 +45,7 @@ func Test_Server_CreateTodo(t *testing.T) {
 
 	m := &jsonpb.Marshaler{OrigName: true}
 	u := &jsonpb.Unmarshaler{}
-	s := NewServer("", todoRepo, zap.NewNop())
+	s := newDefaultServer()
 	for name, tt := range tests {
 		tt := tt
 		t.Run(name, func(t *testing.T) {
@@ -120,7 +120,7 @@ func Test_Server_CreateTodo_Error(t *testing.T) {
 
 	m := &jsonpb.Marshaler{OrigName: true}
 	u := &jsonpb.Unmarshaler{}
-	s := NewServer("", todoRepo, zap.NewNop())
+	s := newDefaultServer()
 	for name, tt := range tests {
 		tt := tt
 		t.Run(name, func(t *testing.T) {
@@ -178,7 +178,7 @@ func Test_server_UpdateTodo(t *testing.T) {
 
 	m := &jsonpb.Marshaler{OrigName: true}
 	u := &jsonpb.Unmarshaler{}
-	s := NewServer("", todoRepo, zap.NewNop())
+	s := newDefaultServer()
 	for name, tt := range tests {
 		tt := tt
 		t.Run(name, func(t *testing.T) {
@@ -250,7 +250,7 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 
 	m := &jsonpb.Marshaler{OrigName: true}
 	u := &jsonpb.Unmarshaler{}
-	s := NewServer("", todoRepo, zap.NewNop())
+	s := newDefaultServer()
 	for name, tt := range tests {
 		tt := tt
 		t.Run(name, func(t *testing.T) {
@@ -301,7 +301,7 @@ func Test_server_DeleteTodo(t *testing.T) {
 	}
 
 	m := &jsonpb.Marshaler{OrigName: true}
-	s := NewServer("", todoRepo, zap.NewNop())
+	s := newDefaultServer()
 	for name, tt := range tests {
 		tt := tt
 		t.Run(name, func(t *testing.T) {
@@ -345,4 +345,8 @@ func newHTTPRequest(t *testing.T, m *jsonpb.Marshaler, method, path string, requ
 		t.Fatalf("http.NewRequest failed: %v", err)
 	}
 	return req
+}
+
+func newDefaultServer() *server {
+	return NewServer("", db, todoRepo, zap.NewNop())
 }
