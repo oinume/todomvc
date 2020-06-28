@@ -55,7 +55,7 @@ func Test_Server_CreateTodo(t *testing.T) {
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
-			s.CreateTodo(rr, req)
+			s.newRouter().ServeHTTP(rr, req)
 
 			result := rr.Result()
 			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
@@ -130,7 +130,7 @@ func Test_Server_CreateTodo_Error(t *testing.T) {
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
-			s.CreateTodo(rr, req)
+			s.newRouter().ServeHTTP(rr, req)
 
 			result := rr.Result()
 			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
@@ -194,11 +194,11 @@ func Test_server_UpdateTodo(t *testing.T) {
 			tt.request.Todo.Id = todo.ID
 			tt.wantResponse.todo.Id = todo.ID
 
-			req := newHTTPRequest(t, m, "PATCH", "/todos", tt.request)
+			req := newHTTPRequest(t, m, "PATCH", "/todos/"+todo.ID, tt.request)
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
-			s.UpdateTodo(rr, req)
+			s.newRouter().ServeHTTP(rr, req)
 
 			result := rr.Result()
 			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
@@ -264,11 +264,11 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			req := newHTTPRequest(t, m, "PATCH", "/todos", tt.request)
+			req := newHTTPRequest(t, m, "PATCH", "/todos/"+tt.request.Todo.Id, tt.request)
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
-			s.UpdateTodo(rr, req)
+			s.newRouter().ServeHTTP(rr, req)
 
 			result := rr.Result()
 			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
