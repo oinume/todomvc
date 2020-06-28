@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -54,13 +55,15 @@ func Test_Server_CreateTodo(t *testing.T) {
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
-			s.CreateTodo(rr, req)
+			s.newRouter().ServeHTTP(rr, req)
 
 			result := rr.Result()
 			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
 				body, _ := ioutil.ReadAll(result.Body)
 				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
 			}
+
+			// Check response
 			got := &todomvc.Todo{}
 			if err := u.Unmarshal(result.Body, got); err != nil {
 				t.Fatal(err)
@@ -69,6 +72,13 @@ func Test_Server_CreateTodo(t *testing.T) {
 				t.Fatal("got.Id is empty")
 			}
 			testings.RequireEqual(t, tt.request.Title, got.Title, "unexpected Title")
+
+			// Check DB
+			gotTodo, err := todoRepo.FindOne(context.Background(), got.Id)
+			if err != nil {
+				t.Fatal(err)
+			}
+			testings.RequireEqual(t, tt.request.Title, gotTodo.Title, "unexpected Title")
 		})
 	}
 }
@@ -120,7 +130,7 @@ func Test_Server_CreateTodo_Error(t *testing.T) {
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
-			s.CreateTodo(rr, req)
+			s.newRouter().ServeHTTP(rr, req)
 
 			result := rr.Result()
 			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
@@ -184,11 +194,11 @@ func Test_server_UpdateTodo(t *testing.T) {
 			tt.request.Todo.Id = todo.ID
 			tt.wantResponse.todo.Id = todo.ID
 
-			req := newHTTPRequest(t, m, "PATCH", "/todos", tt.request)
+			req := newHTTPRequest(t, m, "PATCH", "/todos/"+todo.ID, tt.request)
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
-			s.UpdateTodo(rr, req)
+			s.newRouter().ServeHTTP(rr, req)
 
 			result := rr.Result()
 			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
@@ -196,11 +206,19 @@ func Test_server_UpdateTodo(t *testing.T) {
 				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
 			}
 
+			// Check response
 			got := &todomvc.Todo{}
 			if err := u.Unmarshal(result.Body, got); err != nil {
 				t.Fatal(err)
 			}
-			testings.RequireEqual(t, tt.wantResponse.todo, got, "UpdateTodo unexected response")
+			testings.RequireEqual(t, tt.wantResponse.todo, got, "UpdateTodo unexpected response")
+
+			// Check DB
+			gotTodo, err := todoRepo.FindOne(context.Background(), todo.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			testings.RequireEqual(t, tt.wantResponse.todo.Title, gotTodo.Title, "unexpected tittle")
 		})
 	}
 }
@@ -246,11 +264,11 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			req := newHTTPRequest(t, m, "PATCH", "/todos", tt.request)
+			req := newHTTPRequest(t, m, "PATCH", "/todos/"+tt.request.Todo.Id, tt.request)
 			rr := httptest.NewRecorder()
 			defer func() { _ = rr.Result().Body.Close() }()
 
-			s.UpdateTodo(rr, req)
+			s.newRouter().ServeHTTP(rr, req)
 
 			result := rr.Result()
 			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
@@ -309,7 +327,9 @@ func Test_server_DeleteTodo(t *testing.T) {
 				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
 			}
 
-			// TODO: Check DB data
+			// Check DB
+			_, err := todoRepo.FindOne(context.Background(), todo.ID)
+			testings.RequireEqual(t, sql.ErrNoRows.Error(), err.Error(), "ErrNoRows is expected")
 		})
 	}
 }

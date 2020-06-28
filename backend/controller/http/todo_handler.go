@@ -51,9 +51,21 @@ func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		writeJSON(w, http.StatusBadRequest, errors.New("no id"))
+		return
+	}
+
 	req := &todomvc.UpdateTodoRequest{}
 	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
 		internalServerError(s.logger, w, err)
+		return
+	}
+
+	if id != req.Todo.Id {
+		writeJSON(w, http.StatusBadRequest, errors.New("wrong id"))
 		return
 	}
 
