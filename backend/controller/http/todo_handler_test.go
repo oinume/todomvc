@@ -266,6 +266,54 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 	}
 }
 
+func Test_server_DeleteTodo(t *testing.T) {
+	type response struct {
+		statusCode int
+	}
+	tests := map[string]struct {
+		request      *todomvc.DeleteTodoRequest
+		wantResponse response
+	}{
+		"OK_Deleted": {
+			request: &todomvc.DeleteTodoRequest{},
+			wantResponse: response{
+				statusCode: http.StatusNoContent,
+			},
+		},
+	}
+
+	m := &jsonpb.Marshaler{OrigName: true}
+	s := NewServer("", todoRepo, zap.NewNop())
+	for name, tt := range tests {
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			todo := modeltest.NewTodo(func(todo *model.Todo) {
+				todo.Title = "Delete task"
+			})
+			if err := todoRepo.Create(ctx, todo); err != nil {
+				t.Fatal(err)
+			}
+
+			req := newHTTPRequest(t, m, "DELETE", "/todos/"+todo.ID, tt.request)
+			rr := httptest.NewRecorder()
+			defer func() { _ = rr.Result().Body.Close() }()
+
+			s.newRouter().ServeHTTP(rr, req)
+
+			result := rr.Result()
+			if got, want := result.StatusCode, tt.wantResponse.statusCode; got != want {
+				body, _ := ioutil.ReadAll(result.Body)
+				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
+			}
+
+			// TODO: Check DB data
+		})
+	}
+}
+
 func newHTTPRequest(t *testing.T, m *jsonpb.Marshaler, method, path string, request proto.Message) *http.Request {
 	t.Helper()
 	var reqBody bytes.Buffer

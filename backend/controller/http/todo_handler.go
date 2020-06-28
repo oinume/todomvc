@@ -86,19 +86,18 @@ func (s *server) DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
 	if !ok {
-		internalServerError(s.logger, w, errors.New("no id"))
-		return
-	}
-
-	req := &todomvc.DeleteTodoRequest{}
-	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
-		internalServerError(s.logger, w, err)
+		writeJSON(w, http.StatusBadRequest, errors.New("no id"))
 		return
 	}
 
 	ctx := r.Context()
-	if err := s.todoRepo.Delete(ctx, id); err != nil {
+	deleted, err := s.todoRepo.Delete(ctx, id)
+	if err != nil {
 		internalServerError(s.logger, w, err)
+	}
+	if deleted == 0 {
+		writeJSON(w, http.StatusNotFound, struct{}{})
+		return
 	}
 
 	writeNoContent(w)

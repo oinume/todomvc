@@ -33,3 +33,8 @@ func (r *todoRepository) Update(ctx context.Context, todo *model.Todo) error {
 func (r *todoRepository) FindOne(ctx context.Context, id string) (*model.Todo, error) {
 	return model.FindTodo(ctx, r.db, id)
 }
+
+func (r *todoRepository) Delete(ctx context.Context, id string) (int64, error) {
+	todo := &model.Todo{ID: id}
+	return todo.Delete(ctx, r.db)
+}
