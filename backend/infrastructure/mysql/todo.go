@@ -34,6 +34,10 @@ func (r *todoRepository) FindOne(ctx context.Context, e repository.Executor, id 
 	return model.FindTodo(ctx, e, id)
 }
 
+func (r *todoRepository) Find(ctx context.Context, e repository.Executor) ([]*model.Todo, error) {
+	return model.Todos().All(ctx, e)
+}
+
 func (r *todoRepository) Delete(ctx context.Context, e repository.Executor, todo *model.Todo) (int64, error) {
 	return todo.Delete(ctx, e)
 }

@@ -37,7 +37,9 @@ func (s *server) ListTodos(w http.ResponseWriter, r *http.Request) {
 	for i, t := range todos {
 		protoTodos[i] = c.ToProto(t)
 	}
-	writeJSON(w, http.StatusOK, protoTodos)
+	writeJSON(w, http.StatusOK, &todomvc.ListTodosResponse{
+		Todos: protoTodos,
+	})
 }
 
 func (s *server) GetTodo(w http.ResponseWriter, r *http.Request) {
