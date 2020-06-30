@@ -1,6 +1,7 @@
 package http
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 
 	"github.com/oinume/todomvc/backend/model"
 	"github.com/oinume/todomvc/backend/proto"
+	"github.com/oinume/todomvc/backend/repository"
 	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
 
@@ -81,12 +83,17 @@ func (s *server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 	converter := proto.NewTodoConverter()
 	todo := converter.ToModel(req.Todo)
-	if _, err := s.todoRepo.FindOne(ctx, todo.ID); err != nil {
-		// TODO: not found error body
-		writeJSON(w, http.StatusNotFound, struct{}{})
-		return
-	}
-	if err := s.todoRepo.Update(ctx, todo); err != nil {
+	if err := repository.Transaction(ctx, s.db, func(e repository.Executor) error {
+		if _, err := s.todoRepo.FindOne(ctx, e, todo.ID); err != nil {
+			return err
+		}
+		return s.todoRepo.Update(ctx, e, todo)
+	}); err != nil {
+		if err == sql.ErrNoRows {
+			// TODO: not found error body
+			writeJSON(w, http.StatusNotFound, struct{}{})
+			return
+		}
 		internalServerError(s.logger, w, err)
 		return
 	}
@@ -103,7 +110,7 @@ func (s *server) DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	deleted, err := s.todoRepo.DeleteByID(ctx, id)
+	deleted, err := s.todoRepo.DeleteByID(ctx, s.db, id)
 	if err != nil {
 		internalServerError(s.logger, w, err)
 	}

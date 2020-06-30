@@ -74,7 +74,7 @@ func Test_Server_CreateTodo(t *testing.T) {
 			testings.RequireEqual(t, tt.request.Title, got.Title, "unexpected Title")
 
 			// Check DB
-			gotTodo, err := todoRepo.FindOne(context.Background(), got.Id)
+			gotTodo, err := todoRepo.FindOne(context.Background(), db, got.Id)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -188,7 +188,7 @@ func Test_server_UpdateTodo(t *testing.T) {
 			todo := modeltest.NewTodo(func(todo *model.Todo) {
 				todo.Title = "New frontend task"
 			})
-			if err := todoRepo.Create(ctx, todo); err != nil {
+			if err := todoRepo.Create(ctx, db, todo); err != nil {
 				t.Fatal(err)
 			}
 			tt.request.Todo.Id = todo.ID
@@ -214,7 +214,7 @@ func Test_server_UpdateTodo(t *testing.T) {
 			testings.RequireEqual(t, tt.wantResponse.todo, got, "UpdateTodo unexpected response")
 
 			// Check DB
-			gotTodo, err := todoRepo.FindOne(context.Background(), todo.ID)
+			gotTodo, err := todoRepo.FindOne(context.Background(), db, todo.ID)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -260,7 +260,7 @@ func Test_server_UpdateTodo_Error(t *testing.T) {
 			todo := modeltest.NewTodo(func(todo *model.Todo) {
 				todo.Title = "New frontend task"
 			})
-			if err := todoRepo.Create(ctx, todo); err != nil {
+			if err := todoRepo.Create(ctx, db, todo); err != nil {
 				t.Fatal(err)
 			}
 
@@ -311,7 +311,7 @@ func Test_server_DeleteTodo(t *testing.T) {
 			todo := modeltest.NewTodo(func(todo *model.Todo) {
 				todo.Title = "Delete task"
 			})
-			if err := todoRepo.Create(ctx, todo); err != nil {
+			if err := todoRepo.Create(ctx, db, todo); err != nil {
 				t.Fatal(err)
 			}
 
@@ -328,7 +328,7 @@ func Test_server_DeleteTodo(t *testing.T) {
 			}
 
 			// Check DB
-			_, err := todoRepo.FindOne(context.Background(), todo.ID)
+			_, err := todoRepo.FindOne(context.Background(), db, todo.ID)
 			testings.RequireEqual(t, sql.ErrNoRows.Error(), err.Error(), "ErrNoRows is expected")
 		})
 	}
