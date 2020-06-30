@@ -33,9 +33,9 @@ func (s *server) ListTodos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c := proto.NewTodoConverter()
-	protoTodos := make([]*todomvc.Todo, 0, len(todos))
-	for _, t := range todos {
-		protoTodos = append(protoTodos, c.ToProto(t))
+	protoTodos := make([]*todomvc.Todo, len(todos))
+	for i, t := range todos {
+		protoTodos[i] = c.ToProto(t)
 	}
 	writeJSON(w, http.StatusOK, protoTodos)
 }
