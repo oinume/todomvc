@@ -5,7 +5,7 @@ import (
 	"database/sql"
 )
 
-// ContextExecutor can perform SQL queries
+// ContextExecutor can perform SQL queries. It's for abstraction of database/sql.DB
 type ContextExecutor interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
