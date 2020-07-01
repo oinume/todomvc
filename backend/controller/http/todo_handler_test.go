@@ -24,9 +24,9 @@ import (
 )
 
 func Test_server_ListTodos(t *testing.T) {
+	// Ensure all tables are empty to avoid flaky test
 	modeltest.TruncateAllTables(t, db, config.DefaultVars.MySQLDatabase)
 
-	// TODO: remove DB data
 	todos := []*todomvc.Todo{
 		{
 			Id:        uuid.New().String(),
