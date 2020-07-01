@@ -61,6 +61,8 @@ func (s *server) Shutdown(ctx context.Context) error {
 func (s *server) newRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.Use(accessLogMiddleware(s.logger))
+	r.Handle("/todos", ochttp.WithRouteTag(http.HandlerFunc(s.ListTodos), "/todos")).Methods("GET")
+	r.Handle("/todos/{id}", ochttp.WithRouteTag(http.HandlerFunc(s.GetTodo), "/todos")).Methods("GET")
 	r.Handle("/todos", ochttp.WithRouteTag(http.HandlerFunc(s.CreateTodo), "/todos")).Methods("POST")
 	r.Handle("/todos/{id}", ochttp.WithRouteTag(http.HandlerFunc(s.UpdateTodo), "/todos/{id}")).Methods("PATCH")
 	r.Handle("/todos/{id}", ochttp.WithRouteTag(http.HandlerFunc(s.DeleteTodo), "/todos/{id}")).Methods("DELETE")

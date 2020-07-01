@@ -11,6 +11,20 @@ import "google/protobuf/empty.proto";
 service Todos {
     // https://cloud.google.com/apis/design/standard_methods
 
+    rpc ListTodos(ListTodosRequest) returns (ListTodosResponse) {
+        option (google.api.http) = {
+            get: "/todos"
+            body: "*"
+        };
+    }
+
+    rpc GetTodo(GetTodoRequest) returns (Todo) {
+        option (google.api.http) = {
+            get: "/todos/{id}"
+            body: "*"
+        };
+    }
+
     rpc CreateTodo(CreateTodoRequest) returns (Todo) {
         option (google.api.http) = {
             post: "/todos"
@@ -39,6 +53,14 @@ message Todo {
     bool completed = 3;
     google.protobuf.Timestamp completed_at = 4;
 }
+
+message ListTodosRequest {}
+
+message ListTodosResponse {
+    repeated Todo todos = 1;
+}
+
+message GetTodoRequest {}
 
 message CreateTodoRequest {
     string title = 1;

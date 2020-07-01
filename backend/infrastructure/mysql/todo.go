@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 
 	"github.com/oinume/todomvc/backend/model"
 	"github.com/oinume/todomvc/backend/repository"
@@ -32,6 +33,10 @@ func (r *todoRepository) Update(ctx context.Context, e repository.Executor, todo
 
 func (r *todoRepository) FindOne(ctx context.Context, e repository.Executor, id string) (*model.Todo, error) {
 	return model.FindTodo(ctx, e, id)
+}
+
+func (r *todoRepository) Find(ctx context.Context, e repository.Executor) ([]*model.Todo, error) {
+	return model.Todos(qm.OrderBy("created_at DESC, title ASC")).All(ctx, e)
 }
 
 func (r *todoRepository) Delete(ctx context.Context, e repository.Executor, todo *model.Todo) (int64, error) {

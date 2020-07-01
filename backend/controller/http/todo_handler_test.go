@@ -11,14 +11,142 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/code"
 
+	"github.com/oinume/todomvc/backend/config"
 	"github.com/oinume/todomvc/backend/model"
 	"github.com/oinume/todomvc/backend/modeltest"
+	todomvc_proto "github.com/oinume/todomvc/backend/proto"
 	"github.com/oinume/todomvc/backend/testings"
 	"github.com/oinume/todomvc/proto-gen/go/proto/todomvc"
 )
+
+func Test_server_ListTodos(t *testing.T) {
+	// Ensure all tables are empty to avoid flaky test
+	modeltest.TruncateAllTables(t, db, config.DefaultVars.MySQLDatabase)
+
+	todos := []*todomvc.Todo{
+		{
+			Id:        uuid.New().String(),
+			Title:     "Task1",
+			Completed: false,
+		},
+		{
+			Id:        uuid.New().String(),
+			Title:     "Task2",
+			Completed: true,
+		},
+	}
+	c := todomvc_proto.NewTodoConverter()
+	for _, todo := range todos {
+		mtodo := c.ToModel(todo)
+		if err := todoRepo.Create(context.Background(), db, mtodo); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	tests := map[string]struct {
+		request      *todomvc.ListTodosRequest
+		wantResponse *todomvc.ListTodosResponse
+	}{
+		"OK": {
+			request: &todomvc.ListTodosRequest{},
+			wantResponse: &todomvc.ListTodosResponse{
+				Todos: todos,
+			},
+		},
+	}
+
+	m := &jsonpb.Marshaler{OrigName: true}
+	u := &jsonpb.Unmarshaler{}
+	s := newDefaultServer()
+	for name, tt := range tests {
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			req := newHTTPRequest(t, m, "GET", "/todos", tt.request)
+			rr := httptest.NewRecorder()
+			defer func() { _ = rr.Result().Body.Close() }()
+
+			s.newRouter().ServeHTTP(rr, req)
+
+			result := rr.Result()
+			if got, want := result.StatusCode, http.StatusOK; got != want {
+				body, _ := ioutil.ReadAll(result.Body)
+				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
+			}
+
+			// Check response
+			got := &todomvc.ListTodosResponse{}
+			if err := u.Unmarshal(result.Body, got); err != nil {
+				t.Fatal(err)
+			}
+			testings.RequireEqual(t, tt.wantResponse, got, "unexpected ListTodosResponse")
+		})
+	}
+}
+
+func Test_server_GetTodo(t *testing.T) {
+	type response struct {
+		todo *todomvc.Todo
+	}
+	tests := map[string]struct {
+		request      *todomvc.GetTodoRequest
+		wantResponse response
+	}{
+		"OK": {
+			request: &todomvc.GetTodoRequest{},
+			wantResponse: response{
+				todo: &todomvc.Todo{
+					Title:     "NewServer task",
+					Completed: true,
+				},
+			},
+		},
+	}
+
+	m := &jsonpb.Marshaler{OrigName: true}
+	u := &jsonpb.Unmarshaler{}
+	s := newDefaultServer()
+	for name, tt := range tests {
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			todo := modeltest.NewTodo(func(todo *model.Todo) {
+				todo.Title = tt.wantResponse.todo.Title
+				if tt.wantResponse.todo.Completed {
+					todo.Completed = uint8(1) // TODO: More beautiful conversion
+				}
+			})
+			if err := todoRepo.Create(ctx, db, todo); err != nil {
+				t.Fatal(err)
+			}
+			tt.wantResponse.todo.Id = todo.ID
+
+			req := newHTTPRequest(t, m, "GET", "/todos/"+todo.ID, tt.request)
+			rr := httptest.NewRecorder()
+			defer func() { _ = rr.Result().Body.Close() }()
+
+			s.newRouter().ServeHTTP(rr, req)
+
+			result := rr.Result()
+			if got, want := result.StatusCode, http.StatusOK; got != want {
+				body, _ := ioutil.ReadAll(result.Body)
+				t.Fatalf("unexpected status code: got=%v, want=%v: body=%v", got, want, string(body))
+			}
+
+			// Check response
+			got := &todomvc.Todo{}
+			if err := u.Unmarshal(result.Body, got); err != nil {
+				t.Fatal(err)
+			}
+			testings.RequireEqual(t, tt.wantResponse.todo, got, "unexpected todo")
+		})
+	}
+}
 
 func Test_Server_CreateTodo(t *testing.T) {
 	type response struct {

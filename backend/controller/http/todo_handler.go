@@ -23,6 +23,47 @@ type UpdateTodoRequestValidation struct {
 	Title string `validate:"required,min=1,max=50"`
 }
 
+func (s *server) ListTodos(w http.ResponseWriter, r *http.Request) {
+	todos, err := s.todoRepo.Find(r.Context(), s.db)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			writeJSON(w, http.StatusOK, struct{}{})
+			return
+		}
+	}
+
+	c := proto.NewTodoConverter()
+	protoTodos := make([]*todomvc.Todo, len(todos))
+	for i, t := range todos {
+		protoTodos[i] = c.ToProto(t)
+	}
+	writeJSON(w, http.StatusOK, &todomvc.ListTodosResponse{
+		Todos: protoTodos,
+	})
+}
+
+func (s *server) GetTodo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		writeJSON(w, http.StatusBadRequest, errors.New("no id"))
+		return
+	}
+
+	todo, err := s.todoRepo.FindOne(r.Context(), s.db, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// TODO: not found error body
+			writeJSON(w, http.StatusNotFound, struct{}{})
+			return
+		}
+		internalServerError(s.logger, w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, proto.NewTodoConverter().ToProto(todo))
+}
+
 func (s *server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	req := &todomvc.CreateTodoRequest{}
 	if err := s.unmarshaler.Unmarshal(r.Body, req); err != nil {
