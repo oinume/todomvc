@@ -1,7 +1,9 @@
 package modeltest
 
 import (
+	"database/sql"
 	mrand "math/rand"
+	"testing"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,4 +36,44 @@ func RandomString(length int) string {
 		b[i] = letters[random.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func TruncateAllTables(t *testing.T, db *sql.DB, dbName string) {
+	t.Helper()
+
+	tables, err := LoadAllTables(t, db, dbName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, table := range tables {
+		_, err := db.Exec("TRUNCATE TABLE " + table)
+		if err != nil {
+			t.Fatalf("failed to truncate table: table=%v, err=%v", table, err)
+		}
+	}
+}
+
+func LoadAllTables(t *testing.T, db *sql.DB, dbName string) ([]string, error) {
+	t.Helper()
+
+	sql := "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = ?"
+	rows, err := db.Query(sql, dbName)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+
+	names := make([]string, 0, 10)
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		if name == "goose_db_version" {
+			continue
+		}
+		names = append(names, name)
+	}
+
+	return names, nil
 }

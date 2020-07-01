@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/code"
 
+	"github.com/oinume/todomvc/backend/config"
 	"github.com/oinume/todomvc/backend/model"
 	"github.com/oinume/todomvc/backend/modeltest"
 	todomvc_proto "github.com/oinume/todomvc/backend/proto"
@@ -23,6 +24,8 @@ import (
 )
 
 func Test_server_ListTodos(t *testing.T) {
+	modeltest.TruncateAllTables(t, db, config.DefaultVars.MySQLDatabase)
+
 	// TODO: remove DB data
 	todos := []*todomvc.Todo{
 		{
