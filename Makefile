@@ -67,6 +67,9 @@ db/generate:
 	go run ./tools/cmd/sqlboiler/main.go > sqlboiler.toml
 	sqlboiler -c sqlboiler.toml mysql
 
+run: clean build
+	bin/server
+
 kill:
 	@kill `cat $(PID)` 2> /dev/null || true
 
