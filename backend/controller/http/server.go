@@ -28,6 +28,7 @@ type server struct {
 	validator   *validator.Validate
 }
 
+// NewServer creates HTTP server for backend
 func NewServer(addr string, db *sql.DB, todoRepo repository.TodoRepository, logger *zap.Logger) *server {
 	s := &server{
 		db:       db,
@@ -50,10 +51,12 @@ func NewServer(addr string, db *sql.DB, todoRepo repository.TodoRepository, logg
 	return s
 }
 
+// ListenAndServe is a wrapper of `http.ListenAndServe`.
 func (s *server) ListenAndServe() error {
 	return s.httpServer.ListenAndServe()
 }
 
+// Shutdown this server gracefully.
 func (s *server) Shutdown(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }
@@ -91,14 +94,6 @@ func validationError(w http.ResponseWriter, err error) {
 func internalServerError(logger *zap.Logger, w http.ResponseWriter, err error) {
 	logger.Error("caught error", zap.Error(err))
 	http.Error(w, fmt.Sprintf("Internal server Error\n\n%v", err), http.StatusInternalServerError)
-	//if !config.IsProductionEnv() {
-	//	fmt.Fprintf(w, "----- stacktrace -----\n")
-	//	if e, ok := err.(errors.StackTracer); ok {
-	//		for _, f := range e.StackTrace() {
-	//			fmt.Fprintf(w, "%+v\n", f)
-	//		}
-	//	}
-	//}
 }
 
 func writeJSON(w http.ResponseWriter, code int, body interface{}) {
@@ -126,24 +121,3 @@ func writeNoContent(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusNoContent)
 }
-
-//func writeHTML(w http.ResponseWriter, code int, body string) {
-//	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-//	w.WriteHeader(code)
-//	if _, err := fmt.Fprint(w, body); err != nil {
-//		http.Error(w, "Failed to write HTML", http.StatusInternalServerError)
-//	}
-//}
-
-//func writeHTMLWithTemplate(
-//	w http.ResponseWriter,
-//	code int,
-//	t *template.Template,
-//	data interface{},
-//) {
-//	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-//	w.WriteHeader(code)
-//	if err := t.Execute(w, data); err != nil {
-//		internalServerError(w, err)
-//	}
-//}
