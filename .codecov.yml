@@ -1,0 +1,3 @@
+ignore:
+  - "backend/model/boil_*.go"
+  - "backend/model/mysql_upsert.go"
