@@ -18,12 +18,16 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	_ = os.Setenv("MYSQL_DATABASE", "todomvc_test")
+	// Overwrite database name for unit test
+	if err := os.Setenv("MYSQL_DATABASE", "todomvc_test"); err != nil {
+		panic(err)
+	}
 	config.MustProcessDefault()
 	ldb, err := mysql.NewDB(config.DefaultVars.DBURL())
 	if err != nil {
 		panic("Failed to mysql.NewDB: " + err.Error())
 	}
+
 	db = ldb
 	todoRepo = mysql.NewTodoRepository(db)
 	os.Exit(m.Run())

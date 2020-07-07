@@ -1,3 +1,4 @@
+// modeltest provides functions to create database fixtures for unit test.
 package modeltest
 
 import (
@@ -12,10 +13,10 @@ import (
 
 var (
 	letters = []rune(`abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`)
-	//commonIV = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
-	random = mrand.New(mrand.NewSource(time.Now().UnixNano()))
+	random  = mrand.New(mrand.NewSource(time.Now().UnixNano()))
 )
 
+// NewTodo returns `*model.Todo` with setters function to specify field value for *model.Todo.
 func NewTodo(setters ...func(*model.Todo)) *model.Todo {
 	todo := &model.Todo{}
 	for _, setter := range setters {
@@ -30,6 +31,7 @@ func NewTodo(setters ...func(*model.Todo)) *model.Todo {
 	return todo
 }
 
+// RandomString creates random string of alphabet and number with given length.
 func RandomString(length int) string {
 	b := make([]rune, length)
 	for i := range b {
@@ -38,6 +40,8 @@ func RandomString(length int) string {
 	return string(b)
 }
 
+// TruncateAllTables truncates all tables of the database.
+// You need to call this function to remove all rows to ensure your test starts with clean database.
 func TruncateAllTables(t *testing.T, db *sql.DB, dbName string) {
 	t.Helper()
 
