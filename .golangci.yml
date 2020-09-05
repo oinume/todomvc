@@ -9,7 +9,6 @@ linters-settings:
 
 linters:
   enable:
-    - golint
     - gofmt
     - goimports
     - misspell
