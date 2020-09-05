@@ -23,7 +23,7 @@ func (c *TodoConverter) ToProto(todo *model.Todo) *todomvc.Todo {
 	}
 }
 
-func (s *TodoConverter) ToModel(todo *todomvc.Todo) *model.Todo {
+func (c *TodoConverter) ToModel(todo *todomvc.Todo) *model.Todo {
 	completed := 0
 	if todo.Completed {
 		completed = 1

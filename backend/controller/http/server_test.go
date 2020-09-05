@@ -5,11 +5,11 @@ import (
 	"os"
 	"testing"
 
+	_ "github.com/go-sql-driver/mysql"
+
+	"github.com/oinume/todomvc/backend/config"
 	"github.com/oinume/todomvc/backend/infrastructure/mysql"
 	"github.com/oinume/todomvc/backend/repository"
-
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/oinume/todomvc/backend/config"
 )
 
 var (

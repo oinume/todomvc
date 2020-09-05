@@ -21,4 +21,6 @@ tools/bin/
 /sqlboiler.toml
 
 coverage.txt
+*.iml
+.idea
 

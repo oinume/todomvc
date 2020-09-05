@@ -10,16 +10,15 @@ all: build
 .PHONY: setup
 setup: install-commands install-tools
 
+# TODO: merge to install-tools task
 .PHONY: install-commands
 install-commands:
 	$(GO_GET) google.golang.org/protobuf/cmd/protoc-gen-go@v1.24.0
 #	$(GO_GET) github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 
 .PHONY: install-tools
-install-tools:
-	cd tools && $(GO_GET) \
-		github.com/pressly/goose/cmd/goose \
-		github.com/volatiletech/sqlboiler
+install-tools: ## install dependent tools
+	cd tools && ./install-tools.sh
 
 .PHONY: build
 build:
@@ -30,6 +29,11 @@ clean:
 
 test:
 	$(GO_TEST) ./...
+
+.PHONY: go/lint
+go/lint:
+	golangci-lint version
+	golangci-lint run -j 4 --out-format=line-number ./...
 
 .PHONY: test/db/goose/%
 test/db/goose/%:
@@ -79,3 +83,6 @@ restart: kill clean build
 watch: restart
 	fswatch -o -e ".*" -e vendor -e node_modules -e .venv -i "\\.go$$" . | xargs -n1 -I{} make restart || make kill
 
+.PHONY: help
+help:  ## show this help
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[\/a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
