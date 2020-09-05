@@ -10,16 +10,15 @@ all: build
 .PHONY: setup
 setup: install-commands install-tools
 
+# TODO: merge to install-tools task
 .PHONY: install-commands
 install-commands:
 	$(GO_GET) google.golang.org/protobuf/cmd/protoc-gen-go@v1.24.0
 #	$(GO_GET) github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 
 .PHONY: install-tools
-install-tools:
-	cd tools && $(GO_GET) \
-		github.com/pressly/goose/cmd/goose \
-		github.com/volatiletech/sqlboiler
+install-tools: ## install dependent tools
+	cd tools && ./install-tools.sh
 
 .PHONY: build
 build:
