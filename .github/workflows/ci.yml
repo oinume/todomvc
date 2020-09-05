@@ -11,7 +11,7 @@ jobs:
       MYSQL_HOST: 127.0.0.1
       MYSQL_PORT: 3306
       MYSQL_DATABASE: todomvc
-      CACHE_VERSION: 2
+      CACHE_VERSION: 3
     steps:
       - name: Set up Go 1.14
         uses: actions/setup-go@v1
@@ -22,13 +22,15 @@ jobs:
       - uses: actions/cache@v2
         id: cache
         with:
-          path: ~/go
+          path: |
+            ~/go
+            tools/bin
           key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}-${{ env.CACHE_VERSION }}
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Install tools
         run: |
-          if [ ! -e ~/go/bin/goose ]; then
+          if [ ! -e ./tools/bin/goose ]; then
             make install-tools
           fi
       - name: Build
