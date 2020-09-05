@@ -75,6 +75,7 @@ $ curl -X DELETE http://127.0.0.1:5001/todos/<id>
 - Validation: [go-playground/validator](https://github.com/go-playground/validator)
 - Logging: [uber-go/zap](https://github.com/uber-go/zap)
 - Tracing: [OpenCensus](https://opencensus.io/) + [Jaeger](https://www.jaegertracing.io/)
+- Lint: [golangci-lint](https://github.com/golangci/golangci-lint)
 
 ## CI
 
