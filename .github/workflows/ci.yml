@@ -3,7 +3,7 @@ on:
   - push
 jobs:
   build:
-    name: Build
+    name: build
     runs-on: ubuntu-20.04
     env:
       MYSQL_USER: todomvc
@@ -34,6 +34,9 @@ jobs:
       - name: Build
         run: |
           make build
+      - name: Run go/lint
+        run: |
+          make go/lint
       - name: Start MySQL
         run: |
           sudo systemctl start mysql.service
