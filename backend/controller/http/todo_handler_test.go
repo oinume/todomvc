@@ -9,7 +9,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	//nolint:staticcheck
 	"github.com/golang/protobuf/jsonpb"
+	//nolint:staticcheck
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
 	"go.uber.org/zap"

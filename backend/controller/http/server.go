@@ -8,7 +8,9 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	//nolint:staticcheck
 	"github.com/golang/protobuf/jsonpb"
+	//nolint:staticcheck
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"go.opencensus.io/plugin/ochttp"
