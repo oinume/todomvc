@@ -1,6 +1,6 @@
 module github.com/oinume/todomvc/tools
 
-go 1.14
+go 1.15
 
 require (
 	github.com/friendsofgo/errors v0.9.2 // indirect
