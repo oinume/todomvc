@@ -52,7 +52,7 @@ jobs:
       - name: Run tests
         run: |
           make test/coverage
-      - name: Upload to codecov
+      - name: Upload coverage to codecov
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -60,3 +60,16 @@ jobs:
           fail_ci_if_error: false
 #          flags: unittests # optional
 #          name: codecov-umbrella # optional
+      - name: Upload coverage to coveralls
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: coverage.txt
+          parallel: true
+  # notifies that all test jobs are finished.
+  finish:
+    needs: build
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: shogo82148/actions-goveralls@v1
+        with:
+          parallel-finished: true
