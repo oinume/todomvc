@@ -23,6 +23,6 @@ require (
 	go.uber.org/zap v1.15.0
 	google.golang.org/api v0.28.0 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
-	google.golang.org/protobuf v1.24.0
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/yaml.v2 v2.2.4 // indirect
 )
