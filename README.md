@@ -1,6 +1,6 @@
 # todomvc
 
-[![Actions/Build](https://github.com/oinume/todomvc/workflows/ci/badge.svg)](https://github.com/oinume/todomvc/actions?query=workflow%3Aci)
+[![Actions/Build](https://github.com/oinume/todomvc/workflows/ci/badge.svg)](https://github.com/oinume/todomvc/actions?query=workflow%3Aci+branch%3Amaster)
 [![Codecov](https://codecov.io/gh/oinume/todomvc/branch/master/graph/badge.svg)](https://codecov.io/gh/oinume/todomvc)
 [![Coveralls](https://coveralls.io/repos/github/oinume/todomvc/badge.svg)](https://coveralls.io/github/oinume/todomvc)
 
