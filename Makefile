@@ -12,7 +12,7 @@ setup: install-tools
 
 .PHONY: install-tools
 install-tools: ## install dependent tools
-	cd tools && go list -tags=tools -f='{{ join .Imports "\n" }}' ./tools.go | tr -d [ | tr -d ] | xargs -I{} go install {}
+	cd tools && go list -f='{{ join .Imports "\n" }}' ./tools.go | tr -d [ | tr -d ] | xargs -I{} go install {}
 
 .PHONY: build
 build:
