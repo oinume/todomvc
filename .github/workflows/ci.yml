@@ -64,7 +64,8 @@ jobs:
         uses: shogo82148/actions-goveralls@v1
         with:
           path-to-profile: coverage.txt
-          parallel: true
+          parallel: false
+
   # notifies that all test jobs are finished.
   finish:
     needs: build
