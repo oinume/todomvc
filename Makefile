@@ -18,7 +18,7 @@ install-commands:
 
 .PHONY: install-tools
 install-tools: ## install dependent tools
-	cd tools && ./install-tools.sh
+	go list -tags=tools -f='{{ join .Imports "\n" }}' ./tools/tools.go | tr -d [ | tr -d ] | xargs -I{} go install {}
 
 .PHONY: build
 build:

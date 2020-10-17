@@ -10,19 +10,22 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/golang/protobuf v1.4.2
-	github.com/google/go-cmp v0.5.0
+	github.com/golangci/golangci-lint v1.31.0 // indirect
+	github.com/google/go-cmp v0.5.2
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.4
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/pressly/goose v2.6.0+incompatible // indirect
 	github.com/spf13/cast v1.3.1 // indirect
+	github.com/spf13/cobra v1.1.0 // indirect
 	github.com/uber/jaeger-client-go v2.24.0+incompatible // indirect
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/null v8.0.0+incompatible // indirect
 	github.com/volatiletech/sqlboiler v3.7.1+incompatible
+	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.opencensus.io v0.22.4
 	go.uber.org/zap v1.15.0
 	google.golang.org/api v0.28.0 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 	google.golang.org/protobuf v1.24.0
-	gopkg.in/yaml.v2 v2.2.4 // indirect
 )
