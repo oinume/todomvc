@@ -8,13 +8,7 @@ PID = server.pid
 all: build
 
 .PHONY: setup
-setup: install-commands install-tools
-
-# TODO: merge to install-tools task
-.PHONY: install-commands
-install-commands:
-	$(GO_GET) google.golang.org/protobuf/cmd/protoc-gen-go@v1.24.0
-#	$(GO_GET) github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+setup: install-tools
 
 .PHONY: install-tools
 install-tools: ## install dependent tools
