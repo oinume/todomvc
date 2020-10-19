@@ -13,7 +13,6 @@ This is a todomvc backend implementation in Go.
 - Docker for Mac
 - docker-compose
 - Go 1.14 or later
-- Protobuf
 
 ### Run server
 
