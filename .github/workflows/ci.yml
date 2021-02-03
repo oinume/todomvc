@@ -1,6 +1,7 @@
 name: ci
 on:
   - push
+  - pull_request
 jobs:
   build:
     name: build
@@ -65,3 +66,7 @@ jobs:
         with:
           path-to-profile: coverage.txt
           parallel: false
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v1
+        with:
+          github-token: ${{ secrets.github_token }}
